@@ -41,7 +41,7 @@ END_CLASS: ' ' -> mode(DEFAULT_MODE);
 NAME : . -> more ; // THIS NEEDS TO BE CHANGED TO ACCEPT ONLY WHAT CLASSES CAN BE NAMED
 mode DEFAULT_MODE;
 
-INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
+INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]' '+ -> mode(CLASS_MODE);
 
 LET: [Ll][Ee][Tt];
 IN: [Ii][Nn];
