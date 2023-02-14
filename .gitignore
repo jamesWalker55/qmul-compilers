@@ -35,3 +35,4 @@ assignments/pa3/testsuite
 *~
 *.DS_Store
 
+**/.antlr/
