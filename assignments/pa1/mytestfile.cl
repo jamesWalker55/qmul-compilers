@@ -1,3 +1,4 @@
+(*
 class Main inherits IO {
     main() : Object {
         out_string("test")
@@ -16,3 +17,6 @@ class Main inherits IO {
         }
     };
 };
+*)
+
+class A inherits B{true};
