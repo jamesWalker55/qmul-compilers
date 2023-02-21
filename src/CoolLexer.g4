@@ -59,6 +59,7 @@ LOOP: [Ll][Oo][Oo][Pp];
 NEW: [Nn][Ee][Ww];
 ISVOID: [Ii][Ss][Vv][Oo][Ii][Dd];
 NOT: [Nn][Oo][Tt];
+RETURN: [Rr][Ee][Tt][Uu][Rr][Nn];
 
 /*BOOL, INT AND STRING VALUES*/
 
@@ -85,13 +86,13 @@ UNTERMINATED_STRING : '\n'
 mode DEFAULT_MODE;
 
 //Object type keywords
-TYPE: OBJECT | INT | STRING | BOOL | IO | SELF_TYPE;
-fragment IO: [I][O]; //I'm unsure if IO is case sensitive
+TYPE: OBJECT_TYPE | INT_TYPE | STRING_TYPE | BOOL_TYPE | IO_TYPE | SELF_TYPE;
+fragment IO_TYPE: [I][O]; //I'm unsure if IO is case sensitive
 fragment SELF_TYPE: [S][E][L][F][_][T][Y][P][E];
-fragment OBJECT: [O][b][j][e][c][t];
-fragment INT: [I][n][t];
-fragment STRING: [S][t][r][i][n][g];
-fragment BOOL: [B][o][o][L];
+fragment OBJECT_TYPE: [O][b][j][e][c][t];
+fragment INT_TYPE: [I][n][t];
+fragment STRING_TYPE: [S][t][r][i][n][g];
+fragment BOOL_TYPE: [B][o][o][L];
 
 COMMENT: '(*' ( COMMENT | .)*? '*)' -> skip; //recursive call for nested comments
 
