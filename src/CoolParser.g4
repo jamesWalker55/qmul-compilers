@@ -13,4 +13,6 @@ program
 	;
 
 coolClass :
+//write a list of the IDs here e.g. CLASS TYPE_ID CURLY_OPEN CURLY_CLOSE
+	CLASS
 	;

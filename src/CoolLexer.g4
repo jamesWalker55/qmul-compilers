@@ -32,16 +32,18 @@ ASSIGN_OPERATOR 	        : '<-';
 RIGHTARROW                  : '=>';
 
 
-
 // Keywords (keywords are case insensitive)
-CLASS : [Cc][Ll][Aa][Ss][Ss]' '+ -> mode(CLASS_MODE); //1 or more spaces after class
+CLASS : [Cc][Ll][Aa][Ss][Ss];
+//mode CLASS_MODE;
+//END_CLASS: ' ' -> mode(DEFAULT_MODE);
+//NAME : . -> more ; // THIS NEEDS TO BE CHANGED TO ACCEPT ONLY WHAT CLASSES CAN BE NAMED
+//NAME : TYPE_ID -> more ;
+//mode DEFAULT_MODE;
+//{ setText("Unterminated string constant"); }
+//-> type(ERROR), popMode;
+NAME : TYPE_ID;
 
-mode CLASS_MODE;
-END_CLASS: ' ' -> mode(DEFAULT_MODE);
-NAME : . -> more ; // THIS NEEDS TO BE CHANGED TO ACCEPT ONLY WHAT CLASSES CAN BE NAMED
-mode DEFAULT_MODE;
-
-INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]' '+ -> mode(CLASS_MODE);
+INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
 
 LET: [Ll][Ee][Tt];
 IN: [Ii][Nn];
@@ -72,11 +74,14 @@ fragment
 DIGIT: [0-9];
 
 //TO CREATE STRING, GO INTO A SEPERATE MODE
-BEGIN_STRING: '"' -> more, mode(STRING_MODE);
+BEGIN_STRING : '"' -> more, pushMode(STRING_MODE);
 
 mode STRING_MODE;
-END_STRING: '"' -> mode(DEFAULT_MODE);
-TEXT : . -> more ; // collect more text for string
+END_STRING : '"' -> popMode;
+STRING_TEXT : ~[\\\r\n"] -> more;
+UNTERMINATED_STRING : '\n'
+{ setText("Unterminated string constant"); }
+-> type(ERROR), popMode;
 mode DEFAULT_MODE;
 
 //Object type keywords
@@ -90,9 +95,11 @@ fragment BOOL: [B][o][o][L];
 
 COMMENT: '(*' ( COMMENT | .)*? '*)' -> skip; //recursive call for nested comments
 
-ID: [a-z];
+//Letters, digits and underscore character
+TYPE_ID : [A-Z] IDENTIFIER*;
 fragment
 LETTER: [a-zA-Z];
+IDENTIFIER : LETTER | DIGIT | '_';
 
 WS : [ \r\t\n]+ -> skip ; //skip whitespace
 
