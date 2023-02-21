@@ -33,7 +33,7 @@ RIGHTARROW                  : '=>';
 
 
 // Keywords (keywords are case insensitive)
-KW_CLASS : [Cc][Ll][Aa][Ss][Ss];
+CLASS : [Cc][Ll][Aa][Ss][Ss];
 //mode CLASS_MODE;
 //END_CLASS: ' ' -> mode(DEFAULT_MODE);
 //NAME : . -> more ; // THIS NEEDS TO BE CHANGED TO ACCEPT ONLY WHAT CLASSES CAN BE NAMED
@@ -41,25 +41,23 @@ KW_CLASS : [Cc][Ll][Aa][Ss][Ss];
 //mode DEFAULT_MODE;
 //{ setText("Unterminated string constant"); }
 //-> type(ERROR), popMode;
-CLASSNAME : TYPE_ID;
 
-KW_INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
+INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
 
-KW_LET: [Ll][Ee][Tt];
-KW_IN: [Ii][Nn];
-KW_CASE: [Cc][Aa][Ss][Ee];
-KW_OF: [Oo][Ff];
-KW_ESAC: [Ee][Ss][Aa][Cc];
-KW_IF: [Ii][Ff];
-KW_THEN: [Tt][Hh][Ee][Nn];
-KW_ELSE: [Ee][Ll][Ss][Ee];
-KW_FI: [Ff][Ii];
-KW_WHILE: [Ww][Hh][Ii][Ll][Ee];
-KW_LOOP: [Ll][Oo][Oo][Pp];
-KW_NEW: [Nn][Ee][Ww];
-KW_ISVOID: [Ii][Ss][Vv][Oo][Ii][Dd];
-KW_NOT: [Nn][Oo][Tt];
-KW_RETURN: [Rr][Ee][Tt][Uu][Rr][Nn];
+LET: [Ll][Ee][Tt];
+IN: [Ii][Nn];
+CASE: [Cc][Aa][Ss][Ee];
+OF: [Oo][Ff];
+ESAC: [Ee][Ss][Aa][Cc];
+IF: [Ii][Ff];
+THEN: [Tt][Hh][Ee][Nn];
+ELSE: [Ee][Ll][Ss][Ee];
+FI: [Ff][Ii];
+WHILE: [Ww][Hh][Ii][Ll][Ee];
+LOOP: [Ll][Oo][Oo][Pp];
+NEW: [Nn][Ee][Ww];
+ISVOID: [Ii][Ss][Vv][Oo][Ii][Dd];
+NOT: [Nn][Oo][Tt];
 
 /*BOOL, INT AND STRING VALUES*/
 
@@ -95,6 +93,12 @@ fragment KW_STRING_TYPE: [S][t][r][i][n][g];
 fragment KW_BOOL_TYPE: [B][o][o][L];
 
 COMMENT: '(*' ( COMMENT | .)*? '*)' -> skip; //recursive call for nested comments
+SINGLELINECOMMENT : '--' -> skip, pushMode(COMMENT_MODE);
+
+mode COMMENT_MODE;
+COMMENT_TEXT : ~[\n] -> skip;
+COMMENT_END : '\n' -> skip, popMode;
+mode DEFAULT_MODE;
 
 //Letters, digits and underscore character
 TYPE_ID : [A-Z] IDENTIFIER*;
