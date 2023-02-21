@@ -1,0 +1,34 @@
+#1
+_program
+  #1
+  _class
+    Test
+    Object
+    "./testsuite/parser/whileoneexpression.test"
+    (
+    #1
+    _attr
+      foo
+      Test
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _method
+      bar
+      Int
+      #1
+      _loop
+        #1
+        _comp
+          #1
+          _bool
+            0
+          : _no_type
+        : _no_type
+        #1
+        _string
+          "Ooga booga"
+        : _no_type
+      : _no_type
+    )

@@ -1,0 +1,61 @@
+#1
+_program
+  #1
+  _class
+    Hello
+    Object
+    "./testsuite/parser/associativity-.test"
+    (
+    #1
+    _attr
+      foo
+      Int
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _method
+      moo2
+      #1
+      _formal
+        a
+        String
+      #1
+      _formal
+        b
+        Int
+      #1
+      _formal
+        c
+        Int
+      #1
+      _formal
+        d
+        Int
+      Hello
+      #1
+      _sub
+        #1
+        _sub
+          #1
+          _sub
+            #1
+            _object
+              a
+            : _no_type
+            #1
+            _object
+              b
+            : _no_type
+          : _no_type
+          #1
+          _object
+            c
+          : _no_type
+        : _no_type
+        #1
+        _object
+          d
+        : _no_type
+      : _no_type
+    )

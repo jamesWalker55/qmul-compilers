@@ -1,0 +1,79 @@
+#1
+_program
+  #1
+  _class
+    A
+    Object
+    "./testsuite/parser/formallists.test"
+    (
+    #1
+    _method
+      f
+      Int
+      #1
+      _int
+        5
+      : _no_type
+    #1
+    _method
+      g
+      #1
+      _formal
+        x
+        Bool
+      IO
+      #1
+      _object
+        self
+      : _no_type
+    #1
+    _method
+      h
+      #1
+      _formal
+        y
+        SELF_TYPE
+      #1
+      _formal
+        z
+        Int
+      SELF_TYPE
+      #1
+      _object
+        x
+      : _no_type
+    #1
+    _method
+      f
+      #1
+      _formal
+        a
+        Int
+      #1
+      _formal
+        b
+        Bool
+      #1
+      _formal
+        c
+        Object
+      Object
+      #1
+      _plus
+        #1
+        _plus
+          #1
+          _object
+            a
+          : _no_type
+          #1
+          _object
+            b
+          : _no_type
+        : _no_type
+        #1
+        _object
+          c
+        : _no_type
+      : _no_type
+    )

@@ -1,0 +1,45 @@
+#1
+_program
+  #1
+  _class
+    Main
+    Object
+    "./testsuite/parser/assignseq.test"
+    (
+    #1
+    _attr
+      x
+      Int
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _attr
+      y
+      Int
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _method
+      main
+      Object
+      #1
+      _block
+        #1
+        _assign
+          x
+          #1
+          _assign
+            y
+            #1
+            _neg
+              #1
+              _int
+                5
+              : _no_type
+            : _no_type
+          : _no_type
+        : _no_type
+      : _no_type
+    )

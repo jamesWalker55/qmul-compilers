@@ -1,0 +1,52 @@
+#1
+_program
+  #1
+  _class
+    A
+    Object
+    "./testsuite/parser/multipleattributes.test"
+    (
+    #1
+    _attr
+      x
+      Int
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _attr
+      y
+      Bool
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _attr
+      z
+      Object
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _method
+      f
+      Bool
+      #1
+      _bool
+        1
+      : _no_type
+    #1
+    _attr
+      a
+      String
+      #1
+      _no_expr
+      : _no_type
+    #1
+    _attr
+      a
+      IO
+      #1
+      _no_expr
+      : _no_type
+    )
