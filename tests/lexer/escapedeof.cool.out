@@ -1,0 +1,2 @@
+#name "./testsuite/lexer/escapedeof.cool"
+#2 ERROR "EOF in string constant"
