@@ -1,1 +1,1 @@
-class A inherits B{true};
+class A {true};

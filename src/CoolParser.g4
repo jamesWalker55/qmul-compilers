@@ -16,14 +16,7 @@ coolClass :
 //COOL CLASS HAS OPTIONAL INSTANCE VARIABLES, THEN FUNCTIONS
 //write a list of the IDs here e.g. CLASS TYPE_ID CURLY_OPEN CURLY_CLOSE
 //THE ORDER OF THESE ID'S MATTER
-//rule 1
-	KW_CLASS CLASSNAME
-	CURLY_OPEN
-		expr
-	CURLY_CLOSE
-	|
-//rule 2 
-	KW_CLASS CLASSNAME KW_INHERITS CLASSNAME
+	CLASS TYPE_ID (INHERITS TYPE_ID | )
 	CURLY_OPEN
 		expr
 	CURLY_CLOSE
@@ -32,7 +25,7 @@ coolClass :
 expr :
 	BOOLEAN
 ;
-/*
+/*https://theory.stanford.edu/~aiken/software/cool/cool-manual.pdf
 Cool hierarchy:
 
 CLASSTYPE CLASSNAME {
