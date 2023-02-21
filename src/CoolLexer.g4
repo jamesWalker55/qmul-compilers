@@ -33,7 +33,7 @@ RIGHTARROW                  : '=>';
 
 
 // Keywords (keywords are case insensitive)
-CLASS : [Cc][Ll][Aa][Ss][Ss];
+KW_CLASS : [Cc][Ll][Aa][Ss][Ss];
 //mode CLASS_MODE;
 //END_CLASS: ' ' -> mode(DEFAULT_MODE);
 //NAME : . -> more ; // THIS NEEDS TO BE CHANGED TO ACCEPT ONLY WHAT CLASSES CAN BE NAMED
@@ -41,25 +41,25 @@ CLASS : [Cc][Ll][Aa][Ss][Ss];
 //mode DEFAULT_MODE;
 //{ setText("Unterminated string constant"); }
 //-> type(ERROR), popMode;
-NAME : TYPE_ID;
+CLASSNAME : TYPE_ID;
 
-INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
+KW_INHERITS : [Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss];
 
-LET: [Ll][Ee][Tt];
-IN: [Ii][Nn];
-CASE: [Cc][Aa][Ss][Ee];
-OF: [Oo][Ff];
-ESAC: [Ee][Ss][Aa][Cc];
-IF: [Ii][Ff];
-THEN: [Tt][Hh][Ee][Nn];
-ELSE: [Ee][Ll][Ss][Ee];
-FI: [Ff][Ii];
-WHILE: [Ww][Hh][Ii][Ll][Ee];
-LOOP: [Ll][Oo][Oo][Pp];
-NEW: [Nn][Ee][Ww];
-ISVOID: [Ii][Ss][Vv][Oo][Ii][Dd];
-NOT: [Nn][Oo][Tt];
-RETURN: [Rr][Ee][Tt][Uu][Rr][Nn];
+KW_LET: [Ll][Ee][Tt];
+KW_IN: [Ii][Nn];
+KW_CASE: [Cc][Aa][Ss][Ee];
+KW_OF: [Oo][Ff];
+KW_ESAC: [Ee][Ss][Aa][Cc];
+KW_IF: [Ii][Ff];
+KW_THEN: [Tt][Hh][Ee][Nn];
+KW_ELSE: [Ee][Ll][Ss][Ee];
+KW_FI: [Ff][Ii];
+KW_WHILE: [Ww][Hh][Ii][Ll][Ee];
+KW_LOOP: [Ll][Oo][Oo][Pp];
+KW_NEW: [Nn][Ee][Ww];
+KW_ISVOID: [Ii][Ss][Vv][Oo][Ii][Dd];
+KW_NOT: [Nn][Oo][Tt];
+KW_RETURN: [Rr][Ee][Tt][Uu][Rr][Nn];
 
 /*BOOL, INT AND STRING VALUES*/
 
@@ -86,13 +86,13 @@ UNTERMINATED_STRING : '\n'
 mode DEFAULT_MODE;
 
 //Object type keywords
-TYPE: OBJECT_TYPE | INT_TYPE | STRING_TYPE | BOOL_TYPE | IO_TYPE | SELF_TYPE;
-fragment IO_TYPE: [I][O]; //I'm unsure if IO is case sensitive
-fragment SELF_TYPE: [S][E][L][F][_][T][Y][P][E];
-fragment OBJECT_TYPE: [O][b][j][e][c][t];
-fragment INT_TYPE: [I][n][t];
-fragment STRING_TYPE: [S][t][r][i][n][g];
-fragment BOOL_TYPE: [B][o][o][L];
+TYPE: KW_OBJECT_TYPE | KW_INT_TYPE | KW_STRING_TYPE | KW_BOOL_TYPE | KW_IO_TYPE | KW_SELF_TYPE;
+fragment KW_IO_TYPE: [I][O]; //I'm unsure if IO is case sensitive
+fragment KW_SELF_TYPE: [S][E][L][F][_][T][Y][P][E];
+fragment KW_OBJECT_TYPE: [O][b][j][e][c][t];
+fragment KW_INT_TYPE: [I][n][t];
+fragment KW_STRING_TYPE: [S][t][r][i][n][g];
+fragment KW_BOOL_TYPE: [B][o][o][L];
 
 COMMENT: '(*' ( COMMENT | .)*? '*)' -> skip; //recursive call for nested comments
 
