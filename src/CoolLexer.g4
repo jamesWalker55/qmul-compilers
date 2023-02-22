@@ -122,8 +122,8 @@ OBJECT_IDENTIFIER: LowercaseLetter (UppercaseLetter | LowercaseLetter | Digit | 
 // "Comments cannot cross file boundaries", so comments MUST end with '*)'
 // TODO: Detect unterminated comments (comments that don't have a matching '*)')
 // recursive call for nested comments
-COMMENT: '(*' (COMMENT | .)*? '*)';
-LINE_COMMENT: '--' ~[\n]*? ('\n' | EOF);
+COMMENT: '(*' (COMMENT | .)*? '*)' -> skip;
+LINE_COMMENT: '--' ~[\n]*? ('\n' | EOF) -> skip;
 
 // Whitespaces from COOL manual:
 // - blank (ascii 32)
