@@ -107,8 +107,11 @@ fragment EscapeSequence: '\\' ~'\u0000';
 // Normal, unescaped characters that can appear in a string
 fragment UnescapedStringChar: ~[\u0000\\\r\n"];
 
-STRING_LITERAL:              '"' (UnescapedStringChar | EscapeSequence)* '"';
-UNTERMINATED_STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* (EOF | '\n');
+STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* '"';
+UNTERMINATED_STRING_LITERAL
+  : '"' (UnescapedStringChar | EscapeSequence)* (EOF | '\n')
+    { setText("Unterminated string constant"); }
+    -> type(ERROR);
 
 // Identifiers
 
