@@ -111,10 +111,12 @@ fragment EscapeSequence: '\\' ~'\u0000';
 fragment UnescapedStringChar: ~[\u0000\\\r\n"];
 
 STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* '"';
-UNTERMINATED_STRING_LITERAL
-  : '"' (UnescapedStringChar | EscapeSequence)* (EOF | '\n')
+UNTERMINATED_STRING_LITERAL:
+  ( '"' (UnescapedStringChar | EscapeSequence)* '\n'
     { setText("Unterminated string constant"); }
-    -> type(ERROR);
+  | '"' (UnescapedStringChar | EscapeSequence)* EOF
+    { setText("EOF in string constant"); }
+  ) -> type(ERROR);
 
 // Identifiers
 
