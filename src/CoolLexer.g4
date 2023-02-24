@@ -111,7 +111,7 @@ fragment EscapeSequence: '\\' ~'\u0000';
 fragment UnescapedStringChar: ~[\u0000\\\r\n"];
 
 STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* '"';
-UNTERMINATED_STRING_LITERAL:
+INVALID_STRING_LITERAL:
   ( '"' (UnescapedStringChar | EscapeSequence)* '\n'
     { setText("Unterminated string constant"); }
   | '"' (UnescapedStringChar | EscapeSequence)* EOF
