@@ -57,6 +57,9 @@ NEW:        N E W;
 ISVOID:     I S V O I D;
 NOT:        N O T;
 
+// Unmatched pairs
+COMMENT_END: '*)' { setText("Unmatched *)"); } -> type(ERROR);
+
 // Separators
 
 COMMA:          ',';
