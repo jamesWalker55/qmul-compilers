@@ -108,7 +108,7 @@ INT_LITERAL: Digit+;
 // However a string cannot contain a null byte '\u0000'
 fragment EscapeSequence: '\\' ~'\u0000';
 // Normal, unescaped characters that can appear in a string
-fragment UnescapedStringChar: ~[\u0000\\\r\n"];
+fragment UnescapedStringChar: ~[\u0000\\\n"];
 
 STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* '"';
 INVALID_STRING_LITERAL:
