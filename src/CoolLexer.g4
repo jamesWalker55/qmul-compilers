@@ -116,6 +116,8 @@ UNTERMINATED_STRING_LITERAL:
     { setText("Unterminated string constant"); }
   | '"' (UnescapedStringChar | EscapeSequence)* EOF
     { setText("EOF in string constant"); }
+  | '"' (UnescapedStringChar | EscapeSequence | '\\\u0000')* '"'
+    { setText("String contains escaped null character."); }
   ) -> type(ERROR);
 
 // Identifiers
