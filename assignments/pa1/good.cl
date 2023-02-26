@@ -1,1 +1,5 @@
-class A {true};
+class A {
+    main() : Object {
+        true
+    };
+};
