@@ -1,3 +1,4 @@
+import java.beans.Expression;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +52,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     @Override
+    //Feature node is abstract: needs to work on subclasses MethodNode and AttributeNode
     public Tree visitFeature(CoolParser.FeatureContext ctx) {
         System.out.println("run visitFeature");
         int ln = ctx.start.getLine();
@@ -74,8 +76,26 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
         Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
         Symbol type = StringTable.idtable.addString(nameNode.getSymbol().getText());
-        FormalNode f = new FormalNode(ln, name, type);
-        return f;
+        FormalNode node = new FormalNode(ln, name, type);
+        return node;
+    }
+
+    public Tree visitExpr(CoolParser.ExprContext ctx){
+        System.out.println("run visitExpr");
+        int ln = ctx.start.getLine();
+        TerminalNode boolNode = ctx.BOOL_LITERAL();
+        
+        boolean val;
+        if (boolNode.getText().equals("true")){
+            val = true;
+        }
+        else{
+            val = false;
+        }
+        
+        //testing boolean for now
+        ExpressionNode node = new BoolConstNode(ln, val);
+        return node;
     }
 
 
