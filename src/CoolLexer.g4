@@ -116,7 +116,7 @@ fragment UnescapedStringChar: ~[\u0000\\\n"];
 
 // `stringCharCount` is defined at the top of the file
 STRING_LITERAL
-  : { stringCharCount = 0; } '"' (UnescapedStringChar | EscapeSequence { stringCharCount += 1; })* '"'
+  : { stringCharCount = 0; } '"' ((UnescapedStringChar | EscapeSequence) { stringCharCount += 1; })* '"'
     { if (stringCharCount > 1024) {setText("String constant too long"); setType(ERROR);} }
   ;
 
