@@ -1,5 +1,9 @@
 lexer grammar CoolLexer;
 
+@lexer::members {
+  int stringCharCount;
+}
+
 // Letter fragments
 
 fragment A: [aA];
@@ -110,7 +114,12 @@ fragment EscapeSequence: '\\' ~'\u0000';
 // Normal, unescaped characters that can appear in a string
 fragment UnescapedStringChar: ~[\u0000\\\n"];
 
-STRING_LITERAL: '"' (UnescapedStringChar | EscapeSequence)* '"';
+// `stringCharCount` is defined at the top of the file
+STRING_LITERAL
+  : { stringCharCount = 0; } '"' (UnescapedStringChar | EscapeSequence { stringCharCount += 1; })* '"'
+    { if (stringCharCount > 1024) {setText("String constant too long"); setType(ERROR);} }
+  ;
+
 INVALID_STRING_LITERAL:
   ( '"' (UnescapedStringChar | EscapeSequence)* '\n'
     { setText("Unterminated string constant"); }
