@@ -127,6 +127,8 @@ INVALID_STRING_LITERAL:
     { setText("EOF in string constant"); }
   | '"' (UnescapedStringChar | EscapeSequence | '\\\u0000')* '"'
     { setText("String contains escaped null character."); }
+  | '"' (UnescapedStringChar | EscapeSequence | '\u0000')* '"'
+    { setText("String contains null character."); }
   ) -> type(ERROR);
 
 // Identifiers
