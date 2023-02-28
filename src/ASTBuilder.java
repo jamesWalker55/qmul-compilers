@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import ast.*;
 
+//turn concrete/parse tree into AST
 public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
     @Override
@@ -43,7 +44,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         }
 
         ClassNode c = new ClassNode(ln, name, parent, filename);
-        System.out.println(ctx.feature());
+        //System.out.println(ctx.feature());
         if (ctx.feature() != null)
             for (CoolParser.FeatureContext f : ctx.feature()){
                 c.add((FeatureNode) visitFeature(f));
@@ -54,23 +55,45 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     @Override
     //Feature node is abstract: needs to work on subclasses MethodNode and AttributeNode
     public Tree visitFeature(CoolParser.FeatureContext ctx) {
-        System.out.println("run visitFeature");
+        //System.out.println("run visitFeature");
         int ln = ctx.start.getLine();
         TerminalNode nameNode = ctx.OBJECT_IDENTIFIER();    //name of the object (method name or attribute name)
         TerminalNode typeNode = ctx.TYPE_IDENTIFIER();      //name of type (return type or attribute type)
         
         Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
         Symbol return_type = StringTable.idtable.get(typeNode.getSymbol().getText());
-        ExpressionNode body = (ExpressionNode) visit(ctx.expr());
+
+        ExpressionNode body;
+        if (ctx.expr() != null){
+            body = (ExpressionNode) visit(ctx.expr()); //this only works if there is a valid expr
+        }
+        else{
+            //if there is an empty method, there will be a syntax error instead
+            //this code is for initialization (same as assignment of default value)
+            //set expression to the default value
+            //body = (ExpressionNode) new IntConstNode(ln, val);
+            body = (ExpressionNode) new NoExpressionNode(ln);
+        }
+
         List<FormalNode> formals = new LinkedList<FormalNode>();
-        System.out.println(ctx.formal());
         for (CoolParser.FormalContext f : ctx.formal())
             formals.add((FormalNode) visitFormal(f));
-        return new MethodNode(ln, name, formals, return_type, body);
+
+        // List<TerminalNode> list = ctx.getTokens(ln);//get the list of tokens and determine which rule it follows
+        // System.out.println(ctx.PAREN_OPEN() == null); //not a function therefore it is an assignment
+        if (ctx.PAREN_OPEN() == null){
+            if (ctx.ASSIGN() != null){ //if there is an assignment sign
+                System.out.println("ctx.expr()");
+            }
+            return new AttributeNode(ln, name, return_type, body);
+        }
+        else{
+            return new MethodNode(ln, name, formals, return_type, body);
+        }
     }
 
     public Tree visitFormal(CoolParser.FormalContext ctx) {
-        System.out.println("run visitFormal");
+        //System.out.println("run visitFormal");
         int ln = ctx.start.getLine();
         TerminalNode nameNode = ctx.TYPE_IDENTIFIER();
 
@@ -80,38 +103,64 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         return node;
     }
 
+    //need conditions for each of the different types of expressions
+    //need a way of checking each rule of the grammar
     public Tree visitExpr(CoolParser.ExprContext ctx){
-        System.out.println("run visitExpr");
+        //System.out.println("run visitExpr");
         int ln = ctx.start.getLine();
-        TerminalNode boolNode = ctx.BOOL_LITERAL();
-        
-        boolean val;
-        if (boolNode.getText().equals("true")){
-            val = true;
+
+        //long if statement to check all the rules
+        //these should be in order to match parser priority
+        // | OBJECT_IDENTIFIER
+        // | INT_LITERAL
+        // | STRING_LITERAL
+        // | BOOL_LITERAL
+        ExpressionNode node;
+        if (!ctx.OBJECT_IDENTIFIER().isEmpty()){ //if array is not empty
+            TerminalNode tNode = ctx.OBJECT_IDENTIFIER(0);//assume only 1 object identifier for now
+
+            Symbol val = StringTable.idtable.addString(tNode.getSymbol().getText());
+            node = (ExpressionNode) new ObjectNode(ln, val);
         }
+        else if (ctx.INT_LITERAL() != null){
+            TerminalNode tNode = ctx.INT_LITERAL();
+
+            Symbol val = StringTable.idtable.addString(tNode.getSymbol().getText());
+            node = (ExpressionNode) new IntConstNode(ln, val);
+        }
+        //else if (ctx.BOOL_LITERAL() != null){
         else{
-            val = false;
+            TerminalNode boolNode = ctx.BOOL_LITERAL();
+            boolean val;
+            if (boolNode.getText().equals("true")){
+                val = true;
+            }
+            else{
+                val = false;
+            }
+            
+            //testing boolean for now
+            node = new BoolConstNode(ln, val);
         }
         
-        //testing boolean for now
-        ExpressionNode node = new BoolConstNode(ln, val);
         return node;
     }
 
+    public Tree visitAttribute(CoolParser.FeatureContext ctx){
+        int ln = ctx.start.getLine();
 
+        // List<TerminalNode> ns = ctx.getTokens(ln);
+        // System.out.println(ns);
 
-    // public Tree visitAttribute(CoolParser.FeatureContext ctx){
-    //     int ln = ctx.start.getLine();
+        TerminalNode nameNode = ctx.TYPE_IDENTIFIER();
+        System.out.println(nameNode.getText());
 
-    //     List<TerminalNode> ns = ctx.getTokens(ln);
-    //     System.out.println(ns);
+        Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
+        Symbol type = StringTable.idtable.addString(nameNode.getSymbol().getText());
+        ExpressionNode body = (ExpressionNode) visit(ctx.expr());
 
-    //     Symbol name;
-    //     Symbol type;
-    //     ExpressionNode init;
-
-    //     AttributeNode a = new AttributeNode(ln, name, type, init);
-    //     return a;
-    // }
+        AttributeNode a = new AttributeNode(ln, name, type, body);
+        return a;
+    }
     //public Tree visitMethod(CoolParser.FeatureContext ctx){}
 }
