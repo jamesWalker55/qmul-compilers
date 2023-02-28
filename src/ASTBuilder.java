@@ -65,7 +65,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
         ExpressionNode body;
         if (ctx.expr() != null){
-            body = (ExpressionNode) visit(ctx.expr()); //this only works if there is a valid expr
+            body = (ExpressionNode) visitExpr(ctx.expr()); //this only works if there is a valid expr
         }
         else{
             //if there is an empty method, there will be a syntax error instead
@@ -88,7 +88,8 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
             return new AttributeNode(ln, name, return_type, body);
         }
         else{
-            return new MethodNode(ln, name, formals, return_type, body);
+            //return new MethodNode(ln, name, formals, return_type, body);
+            return (FeatureNode) visitMethod(ctx);
         }
     }
 
@@ -116,7 +117,14 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         // | STRING_LITERAL
         // | BOOL_LITERAL
         ExpressionNode node;
-        if (!ctx.OBJECT_IDENTIFIER().isEmpty()){ //if array is not empty
+
+        //MAKE SURE ALL ARE ELSE IF 
+        //OBJECT_IDENTIFIER ASSIGN expr
+        if (ctx.OBJECT_IDENTIFIER().size() == 1 && ctx.ASSIGN() != null)
+        {
+            node = (ExpressionNode) visitAssign(ctx);
+        }
+        else if (!ctx.OBJECT_IDENTIFIER().isEmpty()){ //if array is not empty
             TerminalNode tNode = ctx.OBJECT_IDENTIFIER(0);//assume only 1 object identifier for now
 
             Symbol val = StringTable.idtable.addString(tNode.getSymbol().getText());
@@ -153,7 +161,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         // System.out.println(ns);
 
         TerminalNode nameNode = ctx.TYPE_IDENTIFIER();
-        System.out.println(nameNode.getText());
 
         Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
         Symbol type = StringTable.idtable.addString(nameNode.getSymbol().getText());
@@ -162,5 +169,31 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         AttributeNode a = new AttributeNode(ln, name, type, body);
         return a;
     }
-    //public Tree visitMethod(CoolParser.FeatureContext ctx){}
+    
+    //WIP
+    public Tree visitMethod(CoolParser.FeatureContext ctx){
+        int ln = ctx.start.getLine();
+        TerminalNode nameNode = ctx.OBJECT_IDENTIFIER();    //name of the object (method name or attribute name)
+        TerminalNode typeNode = ctx.TYPE_IDENTIFIER();      //name of type (return type or attribute type)
+        
+        Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
+        Symbol return_type = StringTable.idtable.get(typeNode.getSymbol().getText());
+
+        ExpressionNode body = (ExpressionNode) visitExpr(ctx.expr());
+
+        List<FormalNode> formals = new LinkedList<FormalNode>();
+
+        MethodNode node = new MethodNode(ln, name, formals, return_type, body);
+        return node;
+    }
+
+    public Tree visitAssign(CoolParser.ExprContext ctx){
+        int ln = ctx.start.getLine();
+        TerminalNode nameNode = ctx.OBJECT_IDENTIFIER(0); //name of variable
+        Symbol name = StringTable.idtable.addString(nameNode.getSymbol().getText());
+        ExpressionNode body = (ExpressionNode) visitExpr(ctx.expr(0));
+
+        AssignNode node = new AssignNode(ln, name, body);
+        return node;
+    }
 }
