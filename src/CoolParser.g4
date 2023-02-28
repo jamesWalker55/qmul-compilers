@@ -7,9 +7,6 @@ options { tokenVocab = CoolLexer; }
 
 /*  Starting point for parsing a Cool file  */
 
-//anyObjectIdentifier: OBJECT_IDENTIFIER | SELF_IDENTIFIER;
-//anyTypeIdentifier: TYPE_IDENTIFIER | SELF_TYPE_IDENTIFIER;
-
 program
   : (coolClass SEMICOLON)+ EOF
   ;
