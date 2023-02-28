@@ -122,8 +122,6 @@ INVALID_STRING_LITERAL:
 
 // Identifiers
 
-SELF_IDENTIFIER: 'self';
-SELF_TYPE_IDENTIFIER: 'SELF_TYPE';
 TYPE_IDENTIFIER:   UppercaseLetter (UppercaseLetter | LowercaseLetter | Digit | '_')*;
 OBJECT_IDENTIFIER: LowercaseLetter (UppercaseLetter | LowercaseLetter | Digit | '_')*;
 
