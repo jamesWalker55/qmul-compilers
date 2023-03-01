@@ -11,7 +11,8 @@ $ErrorActionPreference = "Stop"
 # define paths
 $testsdir = "testsuite\parser"
 $testoutputdir = "tests\parser"
-$parserresultpath = "temp.txt"
+$parserresultpath = "delta_a.txt"
+$realresultpath = "delta_b.txt"
 $run = "run.ps1"
 $build = "build.ps1"
 
@@ -19,6 +20,7 @@ $build = "build.ps1"
 $testsdir = Join-Path $PSScriptRoot $testsdir
 $testoutputdir = Join-Path $PSScriptRoot $testoutputdir
 $parserresultpath = Join-Path $PSScriptRoot $parserresultpath
+$realresultpath = Join-Path $PSScriptRoot $realresultpath
 $run = Join-Path $PSScriptRoot $run
 $build = Join-Path $PSScriptRoot $build
 
@@ -33,6 +35,10 @@ Write-Output "Matching with expected output at: $testoutput"
 
 ./build.ps1
 $parserresult = & ./run.ps1 $testfile 2>&1
+$parserresult = $($parserresult | Select-String -Pattern "^ *#" -NotMatch)
 [IO.File]::WriteAllLines($parserresultpath, $parserresult)
 
-delta $testoutput $parserresultpath
+$realoutput = Get-Content $testoutput | Select-String -Pattern "^ *#" -NotMatch
+[IO.File]::WriteAllLines($realresultpath, $realoutput)
+
+delta $realresultpath $parserresultpath
