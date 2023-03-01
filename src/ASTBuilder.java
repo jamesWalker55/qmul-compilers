@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import ast.*;
@@ -58,8 +57,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         ExpressionNode exprNode = null;
         if (ctx.expr() != null) {
             exprNode = (ExpressionNode) visitExpr(ctx.expr());
-            System.out.println("exprNode:");
-            System.out.println(exprNode);
         }
 
         boolean isMethod = ctx.PAREN_OPEN() != null;
@@ -98,12 +95,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     public Tree visitExpr(CoolParser.ExprContext ctx) {
-        System.out.println("visitExpr(" + ctx.getText() + ")");
-        System.out.println("  Each children:");
-        for (ParseTree asdTree : ctx.children) {
-            System.out.println("  - " + asdTree.getText());
-        }
-
         if (ctx.ASSIGN().size() == 1 && ctx.COLON().size() == 0) {
             return exprAssign(ctx);
         } else if (ctx.DOT() != null) {
@@ -238,20 +229,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
                 exprs);
     }
 
-    private String letNodeToString(ExpressionNode node) {
-        if (node instanceof LetNode) {
-            LetNode ln = (LetNode) node;
-            return ln.getIdentifier() + ": " + ln.getType_decl() + " <- "
-                    + ln.getInit() + " in (" + letNodeToString(ln.getBody()) + ")";
-        } else if (node != null) {
-            return node.toString();
-        } else {
-            return "<null>";
-        }
-    }
-
     private Tree exprLet(CoolParser.ExprContext ctx) {
-        System.out.println("  exprLet(...)");
         Interval ctxRange = ctx.getSourceInterval();
 
         // body expression must be the last expression
@@ -290,10 +268,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
                     prevNode);
 
             prevNode = currentNode;
-
-            LetNode temp = (LetNode) currentNode;
-
-            System.out.println("    created LetNode: " + letNodeToString(temp));
         }
 
         return prevNode;
