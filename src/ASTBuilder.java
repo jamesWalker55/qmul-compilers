@@ -57,6 +57,8 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
         ExpressionNode exprNode = null;
         if (ctx.expr() != null) {
             exprNode = (ExpressionNode) visitExpr(ctx.expr());
+        } else {
+            exprNode = (ExpressionNode) new NoExpressionNode(ctx.start.getLine());
         }
 
         boolean isMethod = ctx.PAREN_OPEN() != null;
