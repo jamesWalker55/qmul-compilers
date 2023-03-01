@@ -32,7 +32,11 @@ feature
 formal: OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER;
 
 expr
-  : OBJECT_IDENTIFIER ASSIGN expr
+  : <assoc=right> OBJECT_IDENTIFIER ASSIGN expr
+  | expr MUL expr
+  | expr DIV expr
+  | expr ADD expr
+  | expr SUB expr
   | expr (AT TYPE_IDENTIFIER)? DOT OBJECT_IDENTIFIER
     PAREN_OPEN
       (expr (COMMA expr)*)?
@@ -51,10 +55,6 @@ expr
   | CASE expr OF (OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER ARROW expr SEMICOLON)+ ESAC
   | NEW TYPE_IDENTIFIER
   | ISVOID expr
-  | expr ADD expr
-  | expr SUB expr
-  | expr MUL expr
-  | expr DIV expr
   | TILDE expr
   | expr LT expr
   | expr LE expr
