@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 $ANTLR_PATH = "."
 $BUILD_DIR = "$ANTLR_PATH\assignments\pa1"
 $ANTLR_JAR = "$ANTLR_PATH\lib\antlr-4.6-complete.jar"
@@ -19,4 +21,9 @@ $JAVA_SRC_FILE_LIST = @(
 )
 
 java -jar $ANTLR_JAR -o $BUILD_DIR -listener -visitor -lib $SRC_DIR $SRC_DIR/CoolParser.g4 $SRC_DIR/CoolLexer.g4
+
+if ($LastExitCode -eq 1) { throw "Error when running ANTLR" }
+
 javac -classpath $CLASSPATH -d "$BUILD_DIR/" $JAVA_SRC_FILE_LIST
+
+if ($LastExitCode -eq 1) { throw "Error when compiling with javac" }
