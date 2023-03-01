@@ -135,7 +135,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
             return exprNot(ctx);
         } else if (ctx.PAREN_OPEN() != null) {
             return exprParen(ctx);
-        } else if (ctx.OBJECT_IDENTIFIER() != null) {
+        } else if (ctx.OBJECT_IDENTIFIER().size() == 1) {
             return exprIdentifier(ctx);
         } else if (ctx.INT_LITERAL() != null) {
             return exprInteger(ctx);
