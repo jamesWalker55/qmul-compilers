@@ -180,11 +180,12 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
     private Tree exprDispatch(CoolParser.ExprContext ctx) {
         String name = ctx.OBJECT_IDENTIFIER().get(0).getSymbol().getText();
-        ExpressionNode expr = (ExpressionNode) visitExpr(ctx.expr(0));
+        ExpressionNode expr = (ExpressionNode) new ObjectNode(
+                ctx.start.getLine(),
+                StringTable.idtable.addString("self"));
         List<ExpressionNode> actuals = ctx
                 .expr()
                 .stream()
-                .skip(1)
                 .map(x -> (ExpressionNode) visitExpr(x))
                 .collect(Collectors.toList());
 
