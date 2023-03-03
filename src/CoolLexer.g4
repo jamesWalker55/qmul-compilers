@@ -141,7 +141,14 @@ OBJECT_IDENTIFIER: LowercaseLetter (UppercaseLetter | LowercaseLetter | Digit | 
 // "Comments cannot cross file boundaries", so comments MUST end with '*)'
 // TODO: Detect unterminated comments (comments that don't have a matching '*)')
 // recursive call for nested comments
-COMMENT: '(*' (COMMENT | .)*? '*)' -> skip;
+fragment NOT_COMMENT_DELIMITER
+  : '*'* ~('*' | '(' | ')')+
+  | '('* ~('*' | '(')+
+  | ')'* ~('*' | '(')+
+  ;
+COMMENT: '(*' ((COMMENT | NOT_COMMENT_DELIMITER)*? | (COMMENT | ~('(' | ')'))*?) '*)' -> skip;
+UNTERMINATED_COMMENT: '(*' (COMMENT | UNTERMINATED_COMMENT | NOT_COMMENT_DELIMITER)*? EOF {setText("EOF in comment");} -> type(ERROR);
+
 LINE_COMMENT: '--' ~[\n]*? ('\n' | EOF) -> skip;
 
 // Whitespaces from COOL manual:
