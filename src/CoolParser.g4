@@ -35,30 +35,30 @@ expr
   : expr (AT TYPE_IDENTIFIER)? DOT OBJECT_IDENTIFIER
     PAREN_OPEN
       (expr (COMMA expr)*)?
-    PAREN_CLOSE
+    PAREN_CLOSE #DottedDispatch
   | OBJECT_IDENTIFIER
     PAREN_OPEN
       (expr (COMMA expr)*)?
-    PAREN_CLOSE
-  | TILDE expr
-  | ISVOID expr
-  | expr (MUL | DIV) expr
-  | expr (ADD | SUB) expr
-  | expr (LT | LE | EQUAL) expr
-  | NOT expr
-  | <assoc=right> OBJECT_IDENTIFIER ASSIGN expr
-  | IF expr THEN expr ELSE expr FI
-  | WHILE expr LOOP expr POOL
-  | BRACE_OPEN (expr SEMICOLON)+ BRACE_CLOSE
+    PAREN_CLOSE #Dispatch
+  | TILDE expr #Tilde
+  | ISVOID expr #IsVoid
+  | expr (MUL | DIV) expr #MulOrDiv
+  | expr (ADD | SUB) expr #AddOrSub
+  | expr (LT | LE | EQUAL) expr #Comparator
+  | NOT expr #Not
+  | <assoc=right> OBJECT_IDENTIFIER ASSIGN expr #Assign
+  | IF expr THEN expr ELSE expr FI #If
+  | WHILE expr LOOP expr POOL #While
+  | BRACE_OPEN (expr SEMICOLON)+ BRACE_CLOSE #Block
   | LET
     OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER (ASSIGN expr)?
     (COMMA OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER (ASSIGN expr)?)*
-    IN expr
-  | CASE expr OF (OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER ARROW expr SEMICOLON)+ ESAC
-  | NEW TYPE_IDENTIFIER
-  | PAREN_OPEN expr PAREN_CLOSE
-  | OBJECT_IDENTIFIER
-  | INT_LITERAL
-  | STRING_LITERAL
-  | BOOL_LITERAL
+    IN expr #Let
+  | CASE expr OF (OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER ARROW expr SEMICOLON)+ ESAC #Case
+  | NEW TYPE_IDENTIFIER #New
+  | PAREN_OPEN expr PAREN_CLOSE #Paren
+  | OBJECT_IDENTIFIER #ObjectIdentifier
+  | INT_LITERAL #IntLiteral
+  | STRING_LITERAL #StringLiteral
+  | BOOL_LITERAL #BoolLiteral
   ;
