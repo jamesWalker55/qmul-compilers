@@ -2,6 +2,13 @@ lexer grammar CoolLexer;
 
 @lexer::members {
   int stringCharCount;
+  int commentDepth;
+  private void checkCommentEOFError() {
+    if (_input.LA(1) == EOF) {
+      setText("EOF in comment");
+      setType(ERROR);
+    }
+  }
 }
 
 // Letter fragments
@@ -62,7 +69,7 @@ ISVOID:     I S V O I D;
 NOT:        N O T;
 
 // Unmatched pairs
-COMMENT_END: '*)' { setText("Unmatched *)"); } -> type(ERROR);
+UNMATCHED_COMMENT_END: '*)' { setText("Unmatched *)"); } -> type(ERROR);
 
 // Separators
 
@@ -139,15 +146,24 @@ OBJECT_IDENTIFIER: LowercaseLetter (UppercaseLetter | LowercaseLetter | Digit | 
 // Comments
 
 // "Comments cannot cross file boundaries", so comments MUST end with '*)'
-// TODO: Detect unterminated comments (comments that don't have a matching '*)')
-// recursive call for nested comments
-fragment NOT_COMMENT_DELIMITER
-  : '*'* ~('*' | '(' | ')')+
-  | '('* ~('*' | '(')+
-  | ')'* ~('*' | '(')+
-  ;
-COMMENT: '(*' ((COMMENT | NOT_COMMENT_DELIMITER)*? | (COMMENT | ~('(' | ')'))*?) '*)' -> skip;
-UNTERMINATED_COMMENT: '(*' (COMMENT | UNTERMINATED_COMMENT | NOT_COMMENT_DELIMITER)*? EOF {setText("EOF in comment");} -> type(ERROR);
+COMMENT_START: '(*' { commentDepth = 1; checkCommentEOFError(); } -> pushMode(COMMENT_MODE);
+
+mode COMMENT_MODE;
+
+  // UNTERMINATED_COMMENT: . EOF { setText("EOF in comment"); setType(ERROR); System.out.println("HOLY SHIT EOF IN COMMENT"); };
+  COMMENT_TEXT: . { checkCommentEOFError(); };
+  COMMENT_INNERSTART: '(*' { commentDepth += 1; checkCommentEOFError(); };
+  COMMENT_END: '*)' { commentDepth -= 1; if (commentDepth == 0) popMode(); else checkCommentEOFError(); };
+
+mode DEFAULT_MODE;
+
+// fragment NOT_COMMENT_DELIMITER
+//   : '*'* ~('*' | '(' | ')')+
+//   | '('* ~('*' | '(')+
+//   | ')'* ~('*' | '(')+
+//   ;
+// COMMENT: '(*' ((COMMENT | NOT_COMMENT_DELIMITER)*? | (COMMENT | ~('(' | ')'))*?) '*)' -> skip;
+// UNTERMINATED_COMMENT: '(*' (COMMENT | UNTERMINATED_COMMENT | NOT_COMMENT_DELIMITER)*? EOF {setText("EOF in comment");} -> type(ERROR);
 
 LINE_COMMENT: '--' ~[\n]*? ('\n' | EOF) -> skip;
 
