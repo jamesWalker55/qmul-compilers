@@ -99,7 +99,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     public Tree visitExpr(CoolParser.ExprContext ctx) {
         if (ctx.ASSIGN().size() == 1 && ctx.COLON().size() == 0) {
             return exprAssign(ctx);
-        } else if (ctx.DOT() != null) {
+        } else if (ctx.AT() != null) {
             return exprStaticDispatch(ctx);
         } else if (ctx.PAREN_OPEN() != null && ctx.OBJECT_IDENTIFIER().size() == 1) {
             return exprDispatch(ctx);
@@ -162,9 +162,9 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     private Tree exprStaticDispatch(CoolParser.ExprContext ctx) {
-        String typeName = ctx.OBJECT_IDENTIFIER().get(0).getSymbol().getText();
-        String name = ctx.OBJECT_IDENTIFIER().get(0).getSymbol().getText();
         ExpressionNode expr = (ExpressionNode) visitExpr(ctx.expr(0));
+        String typeName = ctx.TYPE_IDENTIFIER().get(0).getSymbol().getText();
+        String name = ctx.OBJECT_IDENTIFIER().get(0).getSymbol().getText();
         List<ExpressionNode> actuals = ctx
                 .expr()
                 .stream()
@@ -182,14 +182,26 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
     private Tree exprDispatch(CoolParser.ExprContext ctx) {
         String name = ctx.OBJECT_IDENTIFIER().get(0).getSymbol().getText();
-        ExpressionNode expr = (ExpressionNode) new ObjectNode(
-                ctx.start.getLine(),
-                StringTable.idtable.addString("self"));
-        List<ExpressionNode> actuals = ctx
-                .expr()
-                .stream()
-                .map(x -> (ExpressionNode) visitExpr(x))
-                .collect(Collectors.toList());
+        ExpressionNode expr = null;
+        List<ExpressionNode> actuals = null;
+        if (ctx.DOT() != null) {
+            expr = (ExpressionNode) visitExpr(ctx.expr(0));
+            actuals = ctx
+                    .expr()
+                    .stream()
+                    .skip(1)
+                    .map(x -> (ExpressionNode) visitExpr(x))
+                    .collect(Collectors.toList());
+        } else {
+            expr = (ExpressionNode) new ObjectNode(
+                    ctx.start.getLine(),
+                    StringTable.idtable.addString("self"));
+            actuals = ctx
+                    .expr()
+                    .stream()
+                    .map(x -> (ExpressionNode) visitExpr(x))
+                    .collect(Collectors.toList());
+        }
 
         return new DispatchNode(
                 ctx.start.getLine(),
