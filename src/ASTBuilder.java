@@ -1,3 +1,4 @@
+import java.beans.Expression;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,6 +9,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import ast.*;
 
 public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
+    int comparators; //counter for number of comparators
+
     @Override
     public Tree visitProgram(CoolParser.ProgramContext ctx) {
         ProgramNode p = new ProgramNode(ctx.getStart().getLine());
@@ -55,6 +58,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
 
         // expr: the initial value / method body
         ExpressionNode exprNode = null;
+
         if (ctx.expr() != null) {
             exprNode = (ExpressionNode) visitExpr(ctx.expr());
         } else {
@@ -97,6 +101,11 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     public Tree visitExpr(CoolParser.ExprContext ctx) {
+        //prevent chains of comparators
+        if (!(ctx instanceof CoolParser.ComparatorContext)){
+            comparators = 0;    //reset the counter for comparators in a row
+        }
+
         if (ctx instanceof CoolParser.DottedDispatchContext)
             return visitExpr((CoolParser.DottedDispatchContext) ctx);
         else if (ctx instanceof CoolParser.DispatchContext)
@@ -350,6 +359,27 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     private Tree visitExpr(CoolParser.ComparatorContext ctx) {
+
+        String filename = ctx.start.getTokenSource().getSourceName();
+        int ln = ctx.start.getLine();
+        String sign;
+        //check if there is more than one comparator and throw an error if there is
+        comparators += 1;
+        if (comparators > 1){
+            if (ctx.LT() != null) {
+                sign = ctx.LT().getText();
+            } else if (ctx.LE() != null) {
+                sign = ctx.LE().getText();
+            } else if (ctx.EQUAL() != null) {
+                sign = ctx.EQUAL().getText();
+            } else {
+                throw new AssertionError("Unknown comparator in ctx: " + ctx.getText());
+            }
+            System.err.printf("\"%s\", line %d: syntax error at or near '%s'\n", filename, ln, sign);
+            System.err.println("Compilation halted due to lex and parse errors");
+            System.exit(1);
+        }
+
         if (ctx.LT() != null) {
             return new LTNode(
                     ctx.getStart().getLine(),
