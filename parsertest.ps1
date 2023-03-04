@@ -6,8 +6,6 @@ param (
 )
 # $inputfilepath = ".\testsuite\parser\addedlet.test"
 
-$ErrorActionPreference = "Stop"
-
 # define paths
 $testsdir = "testsuite\parser"
 $testoutputdir = "tests\parser"
