@@ -1,7 +1,12 @@
 lexer grammar CoolLexer;
 
 @lexer::members {
-  int stringCharCount;
+  StringBuilder currentString;
+  private char lastChar(int offset) {
+    String text = getText();
+    if (text.length() > 0) return text.charAt(text.length() - 1 + offset);
+    else return '$';
+  }
 }
 
 // Letter fragments
@@ -116,8 +121,27 @@ fragment UnescapedStringChar: ~[\u0000\\\n"];
 
 // `stringCharCount` is defined at the top of the file
 STRING_LITERAL
-  : { stringCharCount = 0; } '"' ((UnescapedStringChar | EscapeSequence) { stringCharCount += 1; })* '"'
-    { if (stringCharCount > 1024) {setText("String constant too long"); setType(ERROR);} }
+  : { currentString = new StringBuilder(); }
+    '"'
+      (
+        UnescapedStringChar { currentString.append(lastChar(0)); }
+      | EscapeSequence
+        {
+          if (lastChar(0) == 'n') currentString.append('\n');
+          else if (lastChar(0) == 'b') currentString.append('\b');
+          else if (lastChar(0) == 't') currentString.append('\t');
+          else if (lastChar(0) == 'f') currentString.append('\f');
+          else currentString.append(lastChar(0));
+        }
+      )*
+    '"'
+    {
+      if (currentString.length() > 1024) {
+        setText("String constant too long"); setType(ERROR);
+      } else {
+        setText(currentString.toString());
+      }
+    }
   ;
 
 INVALID_STRING_LITERAL:
