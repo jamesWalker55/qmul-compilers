@@ -32,12 +32,7 @@ feature
 formal: OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER;
 
 expr
-  : <assoc=right> OBJECT_IDENTIFIER ASSIGN expr
-  | expr MUL expr
-  | expr DIV expr
-  | expr ADD expr
-  | expr SUB expr
-  | expr (AT TYPE_IDENTIFIER)? DOT OBJECT_IDENTIFIER
+  : expr (AT TYPE_IDENTIFIER)? DOT OBJECT_IDENTIFIER
     PAREN_OPEN
       (expr (COMMA expr)*)?
     PAREN_CLOSE
@@ -45,6 +40,13 @@ expr
     PAREN_OPEN
       (expr (COMMA expr)*)?
     PAREN_CLOSE
+  | TILDE expr
+  | ISVOID expr
+  | expr (MUL | DIV) expr
+  | expr (ADD | SUB) expr
+  | expr (LT | LE | EQUAL) expr
+  | NOT expr
+  | <assoc=right> OBJECT_IDENTIFIER ASSIGN expr
   | IF expr THEN expr ELSE expr FI
   | WHILE expr LOOP expr POOL
   | BRACE_OPEN (expr SEMICOLON)+ BRACE_CLOSE
@@ -54,12 +56,6 @@ expr
     IN expr
   | CASE expr OF (OBJECT_IDENTIFIER COLON TYPE_IDENTIFIER ARROW expr SEMICOLON)+ ESAC
   | NEW TYPE_IDENTIFIER
-  | ISVOID expr
-  | TILDE expr
-  | expr LT expr
-  | expr LE expr
-  | expr EQUAL expr
-  | NOT expr
   | PAREN_OPEN expr PAREN_CLOSE
   | OBJECT_IDENTIFIER
   | INT_LITERAL
