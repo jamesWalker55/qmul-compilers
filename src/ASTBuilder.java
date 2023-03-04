@@ -412,6 +412,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     private Tree exprBool(CoolParser.ExprContext ctx) {
         return new BoolConstNode(
                 ctx.getStart().getLine(),
-                ctx.getText().substring(0, 1) == "t");
+                ctx.getText().substring(0, 1).equals("t"));
     }
 }
