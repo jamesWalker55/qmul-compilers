@@ -235,8 +235,6 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     private Tree visitExpr(CoolParser.LetContext ctx) {
-        Interval ctxRange = ctx.getSourceInterval();
-
         // body expression must be the last expression
         List<CoolParser.ExprContext> exprContexts = ctx.expr();
         ExpressionNode prevNode = (ExpressionNode) visitExpr(exprContexts.get(exprContexts.size() - 1));
@@ -247,8 +245,7 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
             TerminalNode objIdentifier = objectIdentifiers.get(i);
 
             // calculate index of this token within the current context
-            Interval objRange = objIdentifier.getSourceInterval();
-            int objChildIndex = objRange.a - ctxRange.a;
+            int objChildIndex = ctx.children.indexOf(objIdentifier);
 
             String name = objIdentifier.getSymbol().getText();
             String typeName = ((TerminalNode) ctx.getChild(objChildIndex +
@@ -280,15 +277,11 @@ public class ASTBuilder extends CoolParserBaseVisitor<Tree> {
     }
 
     private Tree visitExpr(CoolParser.CaseContext ctx) {
-        Interval ctxRange = ctx.getSourceInterval();
-
         List<BranchNode> cases = new ArrayList<BranchNode>();
 
-        // iterate through identifiers in reverse order
         for (TerminalNode objIdentifier : ctx.OBJECT_IDENTIFIER()) {
             // calculate index of this token within the current context
-            Interval objRange = objIdentifier.getSourceInterval();
-            int objChildIndex = objRange.a - ctxRange.a;
+            int objChildIndex = ctx.children.indexOf(objIdentifier);
 
             int lineNumber = objIdentifier.getSymbol().getLine();
             String name = objIdentifier.getSymbol().getText();
