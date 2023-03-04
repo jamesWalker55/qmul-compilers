@@ -7,6 +7,10 @@ lexer grammar CoolLexer;
     if (text.length() > 0) return text.charAt(text.length() - 1 + offset);
     else return '$';
   }
+  String currentStringError;
+  private void setStringErrorIfNotExists(String msg) {
+    if (currentStringError == null) currentStringError = msg;
+  }
 }
 
 // Letter fragments
@@ -109,22 +113,28 @@ BOOL_LITERAL
 // Greedy operator '+' matches as much input as possible
 INT_LITERAL: Digit+;
 
-// The '/' character can escape most characters, including newlines '\n'. For example:
-//
-//     foo <- "this is \
-//     a valid string"
-//
-// However a string cannot contain a null byte '\u0000'
-fragment EscapeSequence: '\\' ~'\u0000';
-// Normal, unescaped characters that can appear in a string
-fragment UnescapedStringChar: ~[\u0000\\\n"];
+STRING_START
+  : '"'
+    { currentString = new StringBuilder(); currentStringError = null; }
+    -> pushMode(STRING_MODE), more
+  ;
 
-// `stringCharCount` is defined at the top of the file
-STRING_LITERAL
-  : { currentString = new StringBuilder(); }
-    '"'
-      (
-        UnescapedStringChar { currentString.append(lastChar(0)); }
+mode STRING_MODE;
+
+  // The '/' character can escape most characters, including newlines '\n'. For example:
+  //
+  //     foo <- "this is \
+  //     a valid string"
+  //
+  // However a string cannot contain a null byte '\u0000'
+  fragment EscapeSequence: '\\' ~'\u0000';
+  // Normal, unescaped characters that can appear in a string
+  fragment UnescapedStringChar: ~[\u0000\\\n"];
+
+  STRING_TEXT
+    : (
+        UnescapedStringChar
+        { currentString.append(lastChar(0)); }
       | EscapeSequence
         {
           if (lastChar(0) == 'n') currentString.append('\n');
@@ -133,27 +143,45 @@ STRING_LITERAL
           else if (lastChar(0) == 'f') currentString.append('\f');
           else currentString.append(lastChar(0));
         }
-      )*
-    '"'
-    {
-      if (currentString.length() > 1024) {
-        setText("String constant too long"); setType(ERROR);
-      } else {
-        setText(currentString.toString());
-      }
-    }
-  ;
+      ) -> more
+    ;
 
-INVALID_STRING_LITERAL:
-  ( '"' (UnescapedStringChar | EscapeSequence)* '\n'
-    { setText("Unterminated string constant"); }
-  | '"' (UnescapedStringChar | EscapeSequence)* EOF
-    { setText("EOF in string constant"); }
-  | '"' (UnescapedStringChar | EscapeSequence | '\\\u0000')* '"'
-    { setText("String contains escaped null character."); }
-  | '"' (UnescapedStringChar | EscapeSequence | '\u0000')* '"'
-    { setText("String contains null character."); }
-  ) -> type(ERROR);
+  STRING_ERR_NL
+    : '\n'
+      { setStringErrorIfNotExists("Unterminated string constant");
+        setText(currentStringError); setType(ERROR); popMode(); }
+    ;
+  STRING_ERR_EOF
+    : EOF
+      { setStringErrorIfNotExists("EOF in string constant");
+        setText(currentStringError); setType(ERROR); popMode(); }
+    ;
+  STRING_ERR_ESNUL
+    : '\\\u0000'
+      { setStringErrorIfNotExists("String contains escaped null character."); }
+      -> more
+    ;
+  STRING_ERR_NUL
+    : '\u0000'
+      { setStringErrorIfNotExists("String contains null character."); }
+      -> more
+    ;
+
+  STRING_LITERAL // STRING_END
+    : '"'
+      {
+        if (currentStringError != null) {
+          setText(currentStringError); setType(ERROR);
+        } else if (currentString.length() > 1024) {
+          setText("String constant too long"); setType(ERROR);
+        } else {
+          setText(currentString.toString());
+        }
+        popMode();
+      }
+    ;
+
+mode DEFAULT_MODE;
 
 // Identifiers
 
