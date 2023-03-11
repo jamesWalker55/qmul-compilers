@@ -1,20 +1,37 @@
-import ast.IntBinopNode;
 import ast.*; //imports all the node types from the ast
 import ast.visitor.BaseVisitor;
 
 
 class MyContext {
     //this should have data about the context: O, M, C
-    //Objects O
-    //Methods M
+    //Objects O "A function to assign type T to object"
+    //Methods M 
     //Class C
     //currently unsure how context should be implemented/how it is used
+    //the info for this is in Type Environments in the manual
+
+    //needs a list of identifiers via a symbol table (provided class)
+    //use a stack to push and pop when changing scope
+    SymbolTable<Object> table = new SymbolTable<Object>();
+
+    //constructor
+    public MyContext(){
+        table.enterScope(); //enters the first scope
+    }
 }
 
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     //go down the abstract syntax tree
     //then label each node with its type by proving the premises
+
+    @Override
+    public Symbol visit(ProgramNode node, MyContext data){
+        //creates a new context when the program starts
+        //this context is passed down
+        data = new MyContext();
+        return visit(node.getClasses(), data);
+    }
 
     @Override
     public Symbol visit(PlusNode node, MyContext data){
@@ -33,7 +50,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Utilities.semantError().println("error here");;
         }
         //op ∈ {∗, +, −, /}
-        //operation is allowed and creats an int
+        //operation is allowed and creates an int
         node.setType(TreeConstants.Int);
         return visit((IntBinopNode) node, data);
     }
