@@ -34,7 +34,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
 
     @Override
-    public Symbol visit(PlusNode node, MyContext data){
+    //for {∗, +, −, /} operations
+    public Symbol visit(IntBinopNode node, MyContext data){
 
         //if type is incorrect, send a semant error
         //O, M, C |- e1 : Int
@@ -60,8 +61,42 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         //check the expression's type
         //if it is a type set it
         //else, visit node
-        //System.out.println(node instanceof IntConstNode);
-        if (node instanceof IntConstNode){
+        //The rules shown in the manual:
+        if (node instanceof DispatchNode){
+            visit((DispatchNode) node, data);
+        }
+        else if (node instanceof StaticDispatchNode){
+            visit((StaticDispatchNode) node, data);
+        }
+        else if (node instanceof CondNode){
+            visit((CondNode) node, data);
+        }
+        else if (node instanceof LetNode){
+            visit((LetNode) node, data);
+        }
+        else if (node instanceof CaseNode){
+            visit((CaseNode) node, data);
+        }
+        else if (node instanceof LoopNode){
+            visit((LoopNode) node, data);
+        }
+        else if (node instanceof IsVoidNode){
+            visit((IsVoidNode) node, data);
+        }
+        else if (node instanceof BoolUnopNode){
+            visit((BoolUnopNode) node, data);
+        }
+        else if (node instanceof CompNode){
+            visit((NegNode) node, data);
+        }
+        else if (node instanceof IntBinopNode){
+            visit((IntBinopNode) node, data);
+        }
+        else if (node instanceof EqNode){
+            visit((EqNode) node, data);
+        }
+        //basic types
+        else if (node instanceof IntConstNode){ 
             node.setType(TreeConstants.Int);
         }
         else if (node instanceof StringConstNode){
@@ -79,4 +114,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         return node.getType();
     }
+
+    
 }
