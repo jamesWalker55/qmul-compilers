@@ -42,6 +42,12 @@ class TableData{
     String kind;
     Symbol type;
     Object properties;
+
+    public TableData(String kind, Symbol type, Object properties){
+        this.kind = kind;
+        this.type = type;
+        this.properties = properties;
+    }
 }
 
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
@@ -53,6 +59,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(ProgramNode node, MyContext data){
         //creates a new context when the program starts
         //this context is passed down
+        
         data = new MyContext();
         return visit(node.getClasses(), data);
     }
@@ -152,5 +159,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(AssignNode node, MyContext data){
         //this needs to add symbols to the symbol table
+        data.addId(node.getName(), new TableData("var", node.getType(), ""));
+        return node.getType();
     }
 }
