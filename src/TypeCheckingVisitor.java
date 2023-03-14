@@ -12,12 +12,36 @@ class MyContext {
 
     //needs a list of identifiers via a symbol table (provided class)
     //use a stack to push and pop when changing scope
-    SymbolTable<Object> table = new SymbolTable<Object>();
+    SymbolTable<TableData> table = new SymbolTable<TableData>();
+    //Object[]
+    // where index 0 = variable or method or class
+    // where index 1 = type
+    // where index 2 = properties
 
     //constructor
     public MyContext(){
         table.enterScope(); //enters the first scope
     }
+
+    //useful symbol table functions:
+    //addId(Symbol id, D info), enterScope(), exitScope()
+    //this function should be used when defining new functions/variables
+
+    public void addId(Symbol id, TableData info){ //unsure what type the data/info should be atm
+        table.addId(id, info);
+    }
+    public TableData lookup(Symbol sym){
+        return table.lookup(sym);
+    }
+    public Symbol lookupVariable(Symbol sym){
+        return lookup(sym).type;
+    }
+}
+
+class TableData{
+    String kind;
+    Symbol type;
+    Object properties;
 }
 
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
@@ -95,6 +119,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         else if (node instanceof EqNode){
             visit((EqNode) node, data);
         }
+        else if (node instanceof ObjectNode){
+            visit((ObjectNode) node, data);
+        }
         //basic types
         else if (node instanceof IntConstNode){ 
             node.setType(TreeConstants.Int);
@@ -115,5 +142,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
-    
+    @Override
+    public Symbol visit(ObjectNode node, MyContext data){
+        //this needs to check the symbol table
+        node.setType(data.lookupVariable(node.getName()));
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(AssignNode node, MyContext data){
+        //this needs to add symbols to the symbol table
+    }
 }
