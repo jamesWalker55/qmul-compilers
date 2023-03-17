@@ -13,6 +13,7 @@ class MySymbolTable {
     private Stack<HashMap<List<String>, TableData>> tbl = new Stack<HashMap<List<String>, TableData>>();
 
     public MySymbolTable() {
+        enterScope();
     }
 
     /**
@@ -104,14 +105,24 @@ class MySymbolTable {
 }
 
 class TableData {
+    Symbol type;
     Object properties;
 
-    public TableData(Object properties) {
+    public TableData(Symbol type) {
+        this.type = type;
+    }
+
+    public TableData(Symbol type, Object properties) {
+        this.type = type;
         this.properties = properties;
     }
 
     Object getProperties() {
         return properties;
+    }
+
+    public Symbol getType(){
+        return this.type;
     }
 }
 
@@ -148,7 +159,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         // op ∈ {∗, +, −, /}
         // operation is allowed and creates an int
         node.setType(TreeConstants.Int);
-        return visit((IntBinopNode) node, data);
+        return node.getType();
     }
 
     @Override
@@ -201,17 +212,29 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     @Override
     public Symbol visit(ObjectNode node, MySymbolTable table) {
         // this needs to check the symbol table
+        String name = node.getName().toString();
+        System.out.println(name);
         TableData data = table.lookup(node.getName(), "variable");
         if (data == null) {
-            Utilities.fatalError("cool error mate");
+            //Utilities.fatalError("cool error mate");
         }
         return node.getType();
     }
 
-    @Override
-    public Symbol visit(AssignNode node, MySymbolTable table) {
-        // this needs to add symbols to the symbol table
-        table.addId(node.getName(), "variable", new TableData("properties of this thing"));
-        return node.getName();
-    }
+    // @Override
+    // public Symbol visit(AssignNode node, MySymbolTable table) {
+    //     TableData data = table.lookup(node.getName(), "variable");
+    //     //O(Id) = T
+    //     if (!visit(node.getE1(), data).equals(TreeConstants.Int)) {
+    //     Symbol T = data.getType();
+    //     //if type of e1 is not equal to T'
+    //     if (!E.equals(T2))
+
+    //     //O, M, C |- e1 : T'
+    //     Symbol T2 = visit((ExpressionNode)node.getExpr(), table);
+
+    //     // this needs to add symbols to the symbol table
+    //     table.addId(node.getName(), "variable", new TableData(node.getName()));
+    //     return node.getName();
+    // }
 }

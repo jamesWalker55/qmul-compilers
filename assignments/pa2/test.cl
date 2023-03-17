@@ -1,6 +1,6 @@
 --This is a test file to check minimum viable product
 Class Main {
 	main():Object {
-	  1 + "hello"
+	  1 + 1
 	};
 };
