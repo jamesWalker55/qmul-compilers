@@ -140,6 +140,29 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         return visit(node.getClasses(), data);
     }
 
+    @Override //rule for Not
+    public Symbol visit(CompNode node, MySymbolTable table){
+        //if e1 is of type bool
+        if(!visit(node.getE1(), table).equals(TreeConstants.Bool)){
+            //error
+        }
+        else{
+            node.setType(TreeConstants.Bool);
+        }
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(NegNode node, MySymbolTable table){
+        if(!visit(node.getE1(), table).equals(TreeConstants.Int)){
+            //error
+        }
+        else{
+            node.setType(TreeConstants.Int);
+        }
+        return node.getType();
+    }
+
     @Override
     // for {∗, +, −, /} operations
     public Symbol visit(IntBinopNode node, MySymbolTable data) {
@@ -198,8 +221,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
             node.setType(TreeConstants.Int);
         } else if (node instanceof StringConstNode) {
             node.setType(TreeConstants.Str);
-        } else if (node instanceof StringConstNode) {
-            node.setType(TreeConstants.Str);
         } else if (node instanceof BoolConstNode) {
             node.setType(TreeConstants.Bool);
         } else {
@@ -207,6 +228,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         }
 
         return node.getType();
+    }
+
+    @Override
+    public Symbol visit(ClassNode node, MySymbolTable table){
+        //add the current class to the context
+        table.enterScope();
+        table.addId(node.getName(), "class", new TableData(node.getName()));
+        //System.out.println(table.lookup(node.getName(), "class").getType().getName());
+        return visit(node.getFeatures(), table);
     }
 
     @Override
