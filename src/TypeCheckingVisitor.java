@@ -21,9 +21,9 @@ class MyInheritanceGraph{
         addId(TreeConstants.Int, TreeConstants.Object_);
         addId(TreeConstants.Str, TreeConstants.Object_);
         addId(TreeConstants.Bool, TreeConstants.Object_);
-        System.out.println(this.toString());
-        System.out.println(conformance(TreeConstants.Int, TreeConstants.Object_));
-        System.out.println(conformance(TreeConstants.Object_, TreeConstants.Int));
+        // System.out.println(this.toString());
+        // System.out.println(conformance(TreeConstants.Int, TreeConstants.Object_));
+        // System.out.println(conformance(TreeConstants.Object_, TreeConstants.Int));
     }
 
     // if A ≤ B
@@ -94,6 +94,7 @@ class MyInheritanceGraph{
             Utilities.fatalError("addId: can't add a symbol without a scope.");
         }
         tbl.peek().put(id, parent);
+        System.out.println(this.toString());
     }
 
     /**
@@ -316,12 +317,18 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         // if it is a type set it
         // else, visit node
         // The rules shown in the manual:
-        if (node instanceof DispatchNode) {
+        if (node instanceof AssignNode) {
+            visit((AssignNode)node, data);
+        } else if (node instanceof NewNode) {
+            visit((NewNode) node, data);
+        } else if (node instanceof DispatchNode) {
             visit((DispatchNode) node, data);
         } else if (node instanceof StaticDispatchNode) {
             visit((StaticDispatchNode) node, data);
         } else if (node instanceof CondNode) {
             visit((CondNode) node, data);
+        } else if (node instanceof BlockNode) {
+            visit((BlockNode) node, data);
         } else if (node instanceof LetNode) {
             visit((LetNode) node, data);
         } else if (node instanceof CaseNode) {
@@ -340,6 +347,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
             visit((EqNode) node, data);
         } else if (node instanceof ObjectNode) {
             visit((ObjectNode) node, data);
+        } else if (node instanceof NoExpressionNode) {
+        visit((NoExpressionNode) node, data);
         }
         // basic types
         else if (node instanceof IntConstNode) {
@@ -350,8 +359,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
             node.setType(TreeConstants.Bool);
         } else {
             // error for unknown class
+            System.out.println("unknown");
         }
-
         return node.getType();
     }
 
@@ -361,6 +370,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         table.enterScope();
         table.addId(node.getName(), "class", new TableData(node.getName()));
         //System.out.println(table.lookup(node.getName(), "class").getType().getName());
+        //add to inheritance graph
+        table.graph.addId(node.getName(), TreeConstants.Object_);
+        System.out.println("CLASS HERE");
         return visit(node.getFeatures(), table);
     }
 
@@ -368,7 +380,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     public Symbol visit(ObjectNode node, MySymbolTable table) {
         // this needs to check the symbol table
         String name = node.getName().toString();
-        System.out.println(name);
+        System.out.println("Object"+ name);
         TableData data = table.lookup(node.getName(), "variable");
         if (data == null) {
             //Utilities.fatalError("cool error mate");
@@ -378,17 +390,25 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     public Symbol visit(AssignNode node, MySymbolTable table) {
+        System.out.println(node.getName());
         TableData data = table.lookup(node.getName(), "variable");
+        System.out.println("test2");
         //O(Id) = T
         Symbol T = data.getType();
-
+        System.out.println("test3");
         //if type of e1 is not equal to T'
         //O, M, C |- e1 : T'
         if (visit(node.getExpr(), table).equals(T)){
             //error
+            System.out.println("error msg here");
         }
 
         Symbol T2 = visit((ExpressionNode)node.getExpr(), table);
+
+        if (!table.graph.conformance(T2, T)){
+            //error
+            System.out.println("error msg here");
+        };
 
         // this needs to add symbols to the symbol table
         table.addId(node.getName(), "variable", new TableData(node.getName()));
