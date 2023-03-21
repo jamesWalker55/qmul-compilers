@@ -313,6 +313,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     public Symbol visit(ExpressionNode node, MySymbolTable data) {
+        System.out.println(node.toString());
         // check the expression's type
         // if it is a type set it
         // else, visit node
@@ -365,10 +366,33 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     }
 
     @Override
+    public Symbol visit(NewNode node, MySymbolTable table){
+        System.out.println("new node");
+        TableData data = table.lookup(node.getType_name(), "var");
+        System.out.println(table.toString());
+        System.out.println("test1");
+
+        Symbol T = data.getType();
+        System.out.println("test2");
+        if (T.equals(TreeConstants.SELF_TYPE)){
+            node.setType(T);
+        }
+        else{
+            node.setType(T);
+        }
+        System.out.println("test3");
+        return node.getType();
+    }
+
+    @Override
     public Symbol visit(ClassNode node, MySymbolTable table){
         //add the current class to the context
         table.enterScope();
+        System.out.println("add "+node.getName());
         table.addId(node.getName(), "class", new TableData(node.getName()));
+        // Symbol parent = table.graph.lookup(name); //look up the parent in the inheritance graph
+        // table.graph.addId(name, parent);
+
         //System.out.println(table.lookup(node.getName(), "class").getType().getName());
         //add to inheritance graph
         table.graph.addId(node.getName(), TreeConstants.Object_);
@@ -381,7 +405,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         // this needs to check the symbol table
         String name = node.getName().toString();
         System.out.println("Object"+ name);
-        TableData data = table.lookup(node.getName(), "variable");
+        TableData data = table.lookup(node.getName(), "var");
         if (data == null) {
             //Utilities.fatalError("cool error mate");
         }
@@ -389,29 +413,40 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     }
 
     @Override
+    public Symbol visit(AttributeNode node, MySymbolTable table){
+        //Var rule
+        //setting the type to the listed type
+        //e.g x: Int;
+        //System.out.println("Attribute");
+        //System.out.println(node.getName());
+        Symbol name = node.getName();
+        //System.out.println(visit(node.getInit(), table).getName());
+        Symbol type = node.getType_decl();
+        //System.out.println("type "+type.toString());
+
+        //add to symbol table and inheritance graph
+        //System.out.println("add "+name.getName()+" with type "+type.getName());
+        table.addId(name, "var", new TableData(type));
+        return visit((ExpressionNode)node.getInit(), table); //attribute node returns no type if expression is empty
+    }
+
+    @Override
     public Symbol visit(AssignNode node, MySymbolTable table) {
         System.out.println(node.getName());
-        TableData data = table.lookup(node.getName(), "variable");
-        System.out.println("test2");
+        TableData data = table.lookup(node.getName(), "var");
         //O(Id) = T
         Symbol T = data.getType();
-        System.out.println("test3");
+
         //if type of e1 is not equal to T'
         //O, M, C |- e1 : T'
-        if (visit(node.getExpr(), table).equals(T)){
+        Symbol identifierT = visit(node.getExpr(), table); //e1's type
+        //System.out.println(identifierT.getName() + T.getName());
+
+        //identifierT not conforms to T
+        if (!table.graph.conformance(identifierT, T)){
             //error
             System.out.println("error msg here");
         }
-
-        Symbol T2 = visit((ExpressionNode)node.getExpr(), table);
-
-        if (!table.graph.conformance(T2, T)){
-            //error
-            System.out.println("error msg here");
-        };
-
-        // this needs to add symbols to the symbol table
-        table.addId(node.getName(), "variable", new TableData(node.getName()));
         return node.getName();
     }
 }
