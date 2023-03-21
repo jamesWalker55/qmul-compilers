@@ -217,24 +217,18 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Var]
     @Override
     public Symbol visit(ObjectNode node, MyContext ctx) {
-        // this needs to check the symbol ctx
-        String name = node.getName().toString();
-        // System.out.println("Object"+ name);
-        TableData ctx = ctx.lookup(node.getName(), "var");
-        if (ctx == null) {
-            // Utilities.fatalError("cool error mate");
+        Symbol type = ctx.objectMap.get(node.getName());
+        if (type == null) {
+            Utilities.semantError().println("ObjectNode: Identifier not yet defined.");
         }
-        return node.getType();
+        return type;
     }
 
     // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
-        TableData ctx = ctx.lookup(node.getName(), "var");
-        // O(Id) = T
-
-        Symbol T = ctx.getType();
-
+        Symbol type = ctx.objectMap.get(node.getName());
+        // TODO: Continue from here
         // if type of e1 is not equal to T'
         // O, M, C |- e1 : T'
 
