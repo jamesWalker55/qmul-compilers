@@ -126,132 +126,6 @@ class MyContext {
     }
 }
 
-class MyInheritanceGraph {
-    // Symbol1 is the Object, Symbol2 is its parent
-    private Stack<HashMap<Symbol, Symbol>> tbl = new Stack<HashMap<Symbol, Symbol>>();
-
-    public MyInheritanceGraph() {
-        enterScope();
-        // Object is the root
-        addId(TreeConstants.Object_, null);
-        addId(TreeConstants.IO, TreeConstants.Object_);
-        addId(TreeConstants.Int, TreeConstants.Object_);
-        addId(TreeConstants.Str, TreeConstants.Object_);
-        addId(TreeConstants.Bool, TreeConstants.Object_);
-        // System.out.println(this.toString());
-        // System.out.println(conformance(TreeConstants.Int, TreeConstants.Object_));
-        // System.out.println(conformance(TreeConstants.Object_, TreeConstants.Int));
-    }
-
-    // if A ≤ B
-    public boolean conformance(Symbol A, Symbol B) {
-        if (A.getName().equals(B.getName())) {
-            return true;
-        } else if (lub(A, B).equals(B)) {
-            // if A is a subclass, the lub is B
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private ArrayList<Symbol> getPath(Symbol A) {
-        ArrayList<Symbol> listA = new ArrayList<Symbol>();
-        while (A != null) {
-            listA.add(0, A); // push to front of array list
-            A = lookup(A);
-        }
-        // System.out.println(listA);
-        return listA;
-    }
-
-    // least upper bounds
-    public Symbol lub(Symbol A, Symbol B) {
-        // go up to the top then keep going down until not the same
-        if (A.getName() == B.getName()) {
-            return A;
-        }
-
-        ArrayList<Symbol> listA = getPath(A);
-        ArrayList<Symbol> listB = getPath(B);
-
-        int i = 0;
-        while (listA.get(i) == listB.get(i)) {
-            if (i == listA.size() - 1 || i == listB.size() - 1) {
-                break;
-            }
-            i++;
-        }
-        // System.out.println("same: "+ listA.get(i).getName());
-        return listA.get(i);
-    }
-
-    public void enterScope() {
-        tbl.push(new HashMap<Symbol, Symbol>());
-    }
-
-    /**
-     * Exits the most recently entered scope.
-     */
-    public void exitScope() {
-        if (tbl.empty()) {
-            Utilities.fatalError("existScope: can't remove scope from an empty symbol table.");
-        }
-        tbl.pop();
-    }
-
-    /**
-     * Adds a new entry to the symbol table.
-     *
-     * @param id     the symbol
-     * @param parent the ctx associated with id
-     */
-    public void addId(Symbol id, Symbol parent) {
-        if (tbl.empty()) {
-            Utilities.fatalError("addId: can't add a symbol without a scope.");
-        }
-        tbl.peek().put(id, parent);
-        // System.out.println(this.toString());
-    }
-
-    /**
-     * Looks up an item through all scopes of the symbol table. If
-     * found it returns the associated information field, if not it
-     * returns <code>null</code>.
-     *
-     * @param sym the symbol
-     * @return the parent of sym, or null if not found
-     */
-    public Symbol lookup(Symbol sym) {
-        if (tbl.empty()) {
-            Utilities.fatalError("lookup: no scope in symbol table.");
-        }
-        // I break the abstraction here a bit by knowing that stack is
-        // really a vector.
-        for (int i = tbl.size() - 1; i >= 0; i--) {
-            Symbol info = tbl.elementAt(i).get(sym);
-            if (info != null)
-                return info;
-        }
-        return null;
-    }
-
-    /**
-     * Gets the string representation of the symbol table.
-     *
-     * @return the string rep
-     */
-    public String toString() {
-        String res = "";
-        // I break the abstraction here a bit by knowing that stack is
-        // really a vector...
-        for (int i = tbl.size() - 1, j = 0; i >= 0; i--, j++) {
-            res += "Scope " + j + ": " + tbl.elementAt(i) + "\n";
-        }
-        return res;
-    }
-}
-
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     HashMap<Symbol, ClassInfo> classMap;
@@ -268,7 +142,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             visit(classNode, ctx);
         }
 
-        return null;
+        return visit(node.getClasses());
     }
 
     private void populateClassMap(ProgramNode node) {
@@ -334,6 +208,65 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    @Override
+    public Symbol visit(ClassNode node, MyContext _ctx) {
+        MyContext ctx = new MyContext(node.getName());
+        return visit(node.getFeatures(), ctx);
+    }
+
+    @Override
+    public Symbol visit(ObjectNode node, MyContext ctx) {
+        // this needs to check the symbol ctx
+        String name = node.getName().toString();
+        // System.out.println("Object"+ name);
+        TableData ctx = ctx.lookup(node.getName(), "var");
+        if (ctx == null) {
+            // Utilities.fatalError("cool error mate");
+        }
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(AssignNode node, MyContext ctx) {
+        TableData ctx = ctx.lookup(node.getName(), "var");
+        // O(Id) = T
+
+        Symbol T = ctx.getType();
+
+        // if type of e1 is not equal to T'
+        // O, M, C |- e1 : T'
+
+        Symbol identifierT = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
+        // identifierT not conforms to T
+        if (!ctx.graph.conformance(identifierT, T)) {
+            // error
+            System.out.println("error msg here");
+        }
+        node.setType(identifierT);
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(NewNode node, MyContext ctx) {
+        Symbol T = node.getType_name();
+        if (T.equals(TreeConstants.SELF_TYPE)) {
+            node.setType(T);
+        } else {
+            node.setType(T);
+        }
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(BlockNode node, MyContext ctx) {
+        Symbol lastExprType = null;
+        for (ExpressionNode expr : node.getExprs()) {
+            lastExprType = visit(expr, ctx);
+        }
+        node.setType(lastExprType);
+        return lastExprType;
+    }
+
     @Override // rule for Not
     public Symbol visit(CompNode node, MyContext ctx) {
         // if e1 is of type bool
@@ -378,42 +311,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
-    @Override
-    public Symbol visit(BlockNode node, MyContext ctx) {
-        // last line of the block
-        List<ExpressionNode> expressions = node.getExprs();
-        // visit the last expression and get its type
-        node.setType(visit((ExpressionNode) expressions.get(expressions.size() - 1), ctx));
-        return visit(node.getExprs(), ctx);
-    }
-
-    @Override
     public Symbol visit(MethodNode node, MyContext ctx) {
         // TODO: Page 22 of manual
         return visit(node.getExpr(), ctx);
-    }
-
-    @Override
-    public Symbol visit(NewNode node, MyContext ctx) {
-        Symbol T = node.getType_name();
-        if (T.equals(TreeConstants.SELF_TYPE)) {
-            node.setType(T);
-        } else {
-            node.setType(T);
-        }
-        return node.getType();
-    }
-
-    @Override
-    public Symbol visit(ObjectNode node, MyContext ctx) {
-        // this needs to check the symbol ctx
-        String name = node.getName().toString();
-        // System.out.println("Object"+ name);
-        TableData ctx = ctx.lookup(node.getName(), "var");
-        if (ctx == null) {
-            // Utilities.fatalError("cool error mate");
-        }
-        return node.getType();
     }
 
     @Override
@@ -433,25 +333,5 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         ctx.addId(name, "var", new TableData(type));
 
         return visit((ExpressionNode) node.getInit(), ctx); // attribute node returns no type if expression is empty
-    }
-
-    @Override
-    public Symbol visit(AssignNode node, MyContext ctx) {
-        TableData ctx = ctx.lookup(node.getName(), "var");
-        // O(Id) = T
-
-        Symbol T = ctx.getType();
-
-        // if type of e1 is not equal to T'
-        // O, M, C |- e1 : T'
-
-        Symbol identifierT = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
-        // identifierT not conforms to T
-        if (!ctx.graph.conformance(identifierT, T)) {
-            // error
-            System.out.println("error msg here");
-        }
-        node.setType(identifierT);
-        return node.getType();
     }
 }
