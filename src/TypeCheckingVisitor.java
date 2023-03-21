@@ -126,6 +126,44 @@ class MyContext {
     }
 }
 
+class ClassMap {
+    HashMap<Symbol, ClassInfo> map;
+
+    public ClassMap() {
+        map = new HashMap<>();
+    }
+
+    // public inheritsFrom(Symbol subType, Symbol parentType)
+
+    public ArrayList<Symbol> inheritanceChain(Symbol className) {
+        ArrayList<Symbol> chain = new ArrayList<>();
+        while (className != null) {
+            // add class name to beginning of chain
+            chain.add(0, className);
+            // lookup next parent
+            ClassInfo info = map.get(className);
+            if (info == null) {
+                // parent class doesn't exist, error
+                Utilities.semantError()
+                        .println("ClassMap: Attempted to inherit from non-existent class: " + className.getName());
+                break;
+            }
+            className = info.parentClassName;
+        }
+        return chain;
+    }
+
+    public Symbol lub(Symbol x, Symbol y) {
+        // if they are the same class, return either one
+        if (x.getName().equals(y.getName())) {
+            return x;
+        }
+
+        List<Symbol> xChain = inheritanceChain(x);
+        List<Symbol> yChain = inheritanceChain(y);
+    }
+}
+
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     HashMap<Symbol, ClassInfo> classMap;
@@ -228,17 +266,19 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
         Symbol type = ctx.objectMap.get(node.getName());
-        // TODO: Continue from here
+        if (type == null) {
+            Utilities.semantError().println("AssignNode: Identifier not yet defined.");
+        }
         // if type of e1 is not equal to T'
         // O, M, C |- e1 : T'
+        Symbol exprType = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
 
-        Symbol identifierT = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
-        // identifierT not conforms to T
-        if (!ctx.graph.conformance(identifierT, T)) {
+        // exprType not conforms to T
+        if (!ctx.graph.conformance(exprType, T)) {
             // error
             System.out.println("error msg here");
         }
-        node.setType(identifierT);
+        node.setType(exprType);
         return node.getType();
     }
 
