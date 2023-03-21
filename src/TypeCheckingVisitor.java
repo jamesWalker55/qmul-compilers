@@ -6,6 +6,7 @@ import ast.Symbol;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -81,29 +82,37 @@ class MethodMap {
 }
 
 class ClassInfo {
+    Symbol parentClassName;
     ObjectMap objectMap;
     MethodMap methodMap;
 
-    public ClassInfo() {
+    public ClassInfo(Symbol parentClassName) {
+        this.parentClassName = parentClassName;
         objectMap = new ObjectMap();
         methodMap = new MethodMap();
     }
 
-    public ObjectMap getObjectMap() {
-        return objectMap;
-    }
-
-    public MethodMap getMethodMap() {
-        return methodMap;
-    }
-
     static ClassInfo fromClassNode(ClassNode classNode) {
+        ClassInfo info = new ClassInfo(classNode.getParent());
+
         for (FeatureNode featureNode : classNode.getFeatures()) {
-            for (ExpressionNode node : (Tree) featureNode) {
-                
+            if (featureNode instanceof MethodNode) {
+                MethodNode methodNode = (MethodNode) featureNode;
+                List<Symbol> signature = methodNode
+                        .getFormals()
+                        .stream()
+                        .map(n -> n.getType_decl())
+                        .collect(Collectors.toList());
+                info.methodMap.put(methodNode.getName(), signature);
+            } else if (featureNode instanceof AttributeNode) {
+                AttributeNode attributeNode = (AttributeNode) featureNode;
+                info.objectMap.put(attributeNode.getName(), attributeNode.getType_decl());
+            } else {
+                throw new IllegalArgumentException("Unknown feature node received.");
             }
         }
-        // nodes
+
+        return info;
     }
 }
 
@@ -114,14 +123,6 @@ class MyContext {
     public MyContext(Symbol currentClass) {
         this.currentClass = currentClass;
         this.objectMap = new ObjectMap();
-    }
-
-    public ObjectMap getObjectMap() {
-        return objectMap;
-    }
-
-    public Symbol getCurrentClass() {
-        return currentClass;
     }
 }
 
@@ -259,77 +260,24 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // then label each node with its type by proving the premises
 
     @Override
-    public Symbol visit(ProgramNode node, MyContext ctx) {
-        // creates a new context when the program starts
-        // this context is passed down
+    public Symbol visit(ProgramNode node, MyContext _ctx) {
+        populateClassMap(node);
 
-        data = new MyContext();
-        firstPass(node.getClasses(), ctx); // first pass
-        visit(node.getClasses().get(0).getFeatures().get(0), ctx);
-        return visit(node.getClasses(), ctx);
+        for (ClassNode classNode : node.getClasses()) {
+            MyContext ctx = new MyContext(classNode.getName());
+            visit(classNode, ctx);
+        }
+
+        return null;
     }
 
     private void populateClassMap(ProgramNode node) {
+        classMap = new HashMap<>();
         for (ClassNode classNode : node.getClasses()) {
             Symbol name = classNode.getName();
-            ClassInfo info = new ClassInfo();
+            ClassInfo info = ClassInfo.fromClassNode(classNode);
+            classMap.put(name, info);
         }
-    }
-
-    // first pass of the tree
-    public void firstPass(List<ClassNode> nodes, MyContext ctx) {
-        // inheritance graph
-        // for each class
-        for (int i = 0; i < nodes.size(); i++) {
-            // add to inheritance graph
-            // assuming the class doesnt inherit another class ATM
-            ctx.graph.addId(nodes.get(i).getName(), TreeConstants.Object_);
-            ctx.addId(nodes.get(i).getName(), "class", new TableData(TreeConstants.Object_));
-        }
-        // System.out.println(ctx.graph.toString());
-    }
-
-    @Override // rule for Not
-    public Symbol visit(CompNode node, MyContext table) {
-        // if e1 is of type bool
-        if (!visit(node.getE1(), table).equals(TreeConstants.Bool)) {
-            // error
-        } else {
-            node.setType(TreeConstants.Bool);
-        }
-        return node.getType();
-    }
-
-    @Override
-    public Symbol visit(NegNode node, MyContext table) {
-        if (!visit(node.getE1(), table).equals(TreeConstants.Int)) {
-            // error
-        } else {
-            node.setType(TreeConstants.Int);
-        }
-        return node.getType();
-    }
-
-    @Override
-    // for {∗, +, −, /} operations
-    public Symbol visit(IntBinopNode node, MyContext ctx) {
-
-        // if type is incorrect, send a semant error
-        // O, M, C |- e1 : Int
-        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
-            // error format:
-            // filename:ln: non-Int arguments: E1.Type + E2.Type
-            Utilities.semantError().println("error here");
-        }
-        // O, M, C |- e2 : Int
-        if (!visit(node.getE2(), ctx).equals(TreeConstants.Int)) {
-            Utilities.semantError().println("error here");
-            ;
-        }
-        // op ∈ {∗, +, −, /}
-        // operation is allowed and creates an int
-        node.setType(TreeConstants.Int);
-        return node.getType();
     }
 
     @Override
@@ -386,22 +334,67 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    @Override // rule for Not
+    public Symbol visit(CompNode node, MyContext ctx) {
+        // if e1 is of type bool
+        if (visit(node.getE1(), ctx).equals(TreeConstants.Bool)) {
+            node.setType(TreeConstants.Bool);
+        } else {
+            // error
+            Utilities.semantError().println("CompNode: ERROR");
+        }
+        return node.getType();
+    }
+
     @Override
-    public Symbol visit(BlockNode node, MyContext table) {
+    public Symbol visit(NegNode node, MyContext ctx) {
+        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
+            // error
+        } else {
+            node.setType(TreeConstants.Int);
+        }
+        return node.getType();
+    }
+
+    @Override
+    // for {∗, +, −, /} operations
+    public Symbol visit(IntBinopNode node, MyContext ctx) {
+
+        // if type is incorrect, send a semant error
+        // O, M, C |- e1 : Int
+        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
+            // error format:
+            // filename:ln: non-Int arguments: E1.Type + E2.Type
+            Utilities.semantError().println("error here");
+        }
+        // O, M, C |- e2 : Int
+        if (!visit(node.getE2(), ctx).equals(TreeConstants.Int)) {
+            Utilities.semantError().println("error here");
+            ;
+        }
+        // op ∈ {∗, +, −, /}
+        // operation is allowed and creates an int
+        node.setType(TreeConstants.Int);
+        return node.getType();
+    }
+
+    @Override
+    public Symbol visit(BlockNode node, MyContext ctx) {
         // last line of the block
         List<ExpressionNode> expressions = node.getExprs();
         // visit the last expression and get its type
-        node.setType(visit((ExpressionNode) expressions.get(expressions.size() - 1), table));
-        return visit(node.getExprs(), table);
+        node.setType(visit((ExpressionNode) expressions.get(expressions.size() - 1), ctx));
+        return visit(node.getExprs(), ctx);
     }
 
     @Override
-    public Symbol visit(MethodNode node, MyContext table) {
-        return visit(node.getExpr(), table);
+    public Symbol visit(MethodNode node, MyContext ctx) {
+        // TODO: Page 22 of manual
+        return visit(node.getExpr(), ctx);
     }
 
     @Override
-    public Symbol visit(NewNode node, MyContext table) {
+    public Symbol visit(NewNode node, MyContext ctx) {
         Symbol T = node.getType_name();
         if (T.equals(TreeConstants.SELF_TYPE)) {
             node.setType(T);
@@ -412,28 +405,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
 
     @Override
-    public Symbol visit(ClassNode node, MyContext table) {
-        // add the current class to the context
-        table.enterScope();
-        // System.out.println("add "+node.getName());
-        table.addId(node.getName(), "class", new TableData(node.getName()));
-        // Symbol parent = table.graph.lookup(name); //look up the parent in the
-        // inheritance graph
-        // table.graph.addId(name, parent);
-
-        // System.out.println(table.lookup(node.getName(),
-        // "class").getType().getName());
-
-        // System.out.println("CLASS HERE");
-        return visit(node.getFeatures(), table);
-    }
-
-    @Override
-    public Symbol visit(ObjectNode node, MyContext table) {
-        // this needs to check the symbol table
+    public Symbol visit(ObjectNode node, MyContext ctx) {
+        // this needs to check the symbol ctx
         String name = node.getName().toString();
         // System.out.println("Object"+ name);
-        TableData ctx = table.lookup(node.getName(), "var");
+        TableData ctx = ctx.lookup(node.getName(), "var");
         if (ctx == null) {
             // Utilities.fatalError("cool error mate");
         }
@@ -441,27 +417,27 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
 
     @Override
-    public Symbol visit(AttributeNode node, MyContext table) {
+    public Symbol visit(AttributeNode node, MyContext ctx) {
         // Var rule
         // setting the type to the listed type
         // e.g x: Int;
         // System.out.println("Attribute");
         // System.out.println(node.getName());
         Symbol name = node.getName();
-        // System.out.println(visit(node.getInit(), table).getName());
+        // System.out.println(visit(node.getInit(), ctx).getName());
         Symbol type = node.getType_decl();
         // System.out.println("type "+type.toString());
 
-        // add to symbol table and inheritance graph
+        // add to symbol ctx and inheritance graph
         // System.out.println("add "+name.getName()+" with type "+type.getName());
-        table.addId(name, "var", new TableData(type));
+        ctx.addId(name, "var", new TableData(type));
 
-        return visit((ExpressionNode) node.getInit(), table); // attribute node returns no type if expression is empty
+        return visit((ExpressionNode) node.getInit(), ctx); // attribute node returns no type if expression is empty
     }
 
     @Override
-    public Symbol visit(AssignNode node, MyContext table) {
-        TableData ctx = table.lookup(node.getName(), "var");
+    public Symbol visit(AssignNode node, MyContext ctx) {
+        TableData ctx = ctx.lookup(node.getName(), "var");
         // O(Id) = T
 
         Symbol T = ctx.getType();
@@ -469,9 +445,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // if type of e1 is not equal to T'
         // O, M, C |- e1 : T'
 
-        Symbol identifierT = visit((ExpressionNode) node.getExpr(), table); // e1's type
+        Symbol identifierT = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
         // identifierT not conforms to T
-        if (!table.graph.conformance(identifierT, T)) {
+        if (!ctx.graph.conformance(identifierT, T)) {
             // error
             System.out.println("error msg here");
         }
