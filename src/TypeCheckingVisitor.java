@@ -46,7 +46,7 @@ class MyInheritanceGraph{
             listA.add(0, A); //push to front of array list
             A = lookup(A);
         }
-        System.out.println(listA);
+        //System.out.println(listA);
         return listA;
     }
 
@@ -65,7 +65,7 @@ class MyInheritanceGraph{
             if (i == listA.size()-1 || i == listB.size()-1){ break; }
             i++;
         }
-        System.out.println("same: "+ listA.get(i).getName());
+        //System.out.println("same: "+ listA.get(i).getName());
         return listA.get(i);
     }
 
@@ -94,7 +94,7 @@ class MyInheritanceGraph{
             Utilities.fatalError("addId: can't add a symbol without a scope.");
         }
         tbl.peek().put(id, parent);
-        System.out.println(this.toString());
+        //System.out.println(this.toString());
     }
 
     /**
@@ -313,7 +313,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     public Symbol visit(ExpressionNode node, MySymbolTable data) {
-        System.out.println(node.toString());
+        //System.out.println(node.toString());
         // check the expression's type
         // if it is a type set it
         // else, visit node
@@ -367,20 +367,20 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     public Symbol visit(NewNode node, MySymbolTable table){
-        System.out.println("new node");
+        //System.out.println("new node");
         TableData data = table.lookup(node.getType_name(), "var");
-        System.out.println(table.toString());
-        System.out.println("test1");
+        //System.out.println(table.toString());
+        //System.out.println("test1");
 
         Symbol T = data.getType();
-        System.out.println("test2");
+        //System.out.println("test2");
         if (T.equals(TreeConstants.SELF_TYPE)){
             node.setType(T);
         }
         else{
             node.setType(T);
         }
-        System.out.println("test3");
+        //System.out.println("test3");
         return node.getType();
     }
 
@@ -388,7 +388,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     public Symbol visit(ClassNode node, MySymbolTable table){
         //add the current class to the context
         table.enterScope();
-        System.out.println("add "+node.getName());
+        //System.out.println("add "+node.getName());
         table.addId(node.getName(), "class", new TableData(node.getName()));
         // Symbol parent = table.graph.lookup(name); //look up the parent in the inheritance graph
         // table.graph.addId(name, parent);
@@ -396,7 +396,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         //System.out.println(table.lookup(node.getName(), "class").getType().getName());
         //add to inheritance graph
         table.graph.addId(node.getName(), TreeConstants.Object_);
-        System.out.println("CLASS HERE");
+        //System.out.println("CLASS HERE");
         return visit(node.getFeatures(), table);
     }
 
@@ -404,7 +404,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     public Symbol visit(ObjectNode node, MySymbolTable table) {
         // this needs to check the symbol table
         String name = node.getName().toString();
-        System.out.println("Object"+ name);
+        //System.out.println("Object"+ name);
         TableData data = table.lookup(node.getName(), "var");
         if (data == null) {
             //Utilities.fatalError("cool error mate");
@@ -432,7 +432,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     public Symbol visit(AssignNode node, MySymbolTable table) {
-        System.out.println(node.getName());
+        //System.out.println(node.getName());
         TableData data = table.lookup(node.getName(), "var");
         //O(Id) = T
         Symbol T = data.getType();
