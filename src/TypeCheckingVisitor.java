@@ -214,6 +214,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return visit(node.getFeatures(), ctx);
     }
 
+    // [Var]
     @Override
     public Symbol visit(ObjectNode node, MyContext ctx) {
         // this needs to check the symbol ctx
@@ -226,6 +227,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
         TableData ctx = ctx.lookup(node.getName(), "var");
@@ -246,6 +248,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [New]
     @Override
     public Symbol visit(NewNode node, MyContext ctx) {
         Symbol T = node.getType_name();
@@ -257,6 +260,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [Sequence]
     @Override
     public Symbol visit(BlockNode node, MyContext ctx) {
         Symbol lastExprType = null;
@@ -267,7 +271,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return lastExprType;
     }
 
-    @Override // rule for Not
+    // [Not]
+    @Override
     public Symbol visit(CompNode node, MyContext ctx) {
         // if e1 is of type bool
         if (visit(node.getE1(), ctx).equals(TreeConstants.Bool)) {
@@ -279,6 +284,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [Neg]
     @Override
     public Symbol visit(NegNode node, MyContext ctx) {
         if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
@@ -289,8 +295,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [Arith]
     @Override
-    // for {∗, +, −, /} operations
     public Symbol visit(IntBinopNode node, MyContext ctx) {
 
         // if type is incorrect, send a semant error
@@ -311,11 +317,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
-    public Symbol visit(MethodNode node, MyContext ctx) {
-        // TODO: Page 22 of manual
-        return visit(node.getExpr(), ctx);
-    }
-
+    // [Attr-Init] / [Attr-No-Init]
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
         // Var rule
@@ -333,5 +335,12 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         ctx.addId(name, "var", new TableData(type));
 
         return visit((ExpressionNode) node.getInit(), ctx); // attribute node returns no type if expression is empty
+    }
+
+    // [Method]
+    @Override
+    public Symbol visit(MethodNode node, MyContext ctx) {
+        // TODO: Page 22 of manual
+        return visit(node.getExpr(), ctx);
     }
 }
