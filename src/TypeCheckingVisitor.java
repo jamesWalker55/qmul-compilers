@@ -263,7 +263,21 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         // this context is passed down
 
         data = new MySymbolTable();
+        firstPass(node.getClasses(), data); //first pass
         return visit(node.getClasses(), data);
+    }
+
+    //first pass of the tree
+    public void firstPass(List<ClassNode> nodes, MySymbolTable data){
+        //inheritance graph
+        //for each class
+        for (int i=0;i<nodes.size();i++){
+            //add to inheritance graph
+            //assuming the class doesnt inherit another class ATM
+            data.graph.addId(nodes.get(i).getName(), TreeConstants.Object_);
+            data.addId(nodes.get(i).getName(), "class", new TableData(TreeConstants.Object_));
+        }
+        //System.out.println(data.graph.toString());
     }
 
     @Override //rule for Not
@@ -366,21 +380,28 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     }
 
     @Override
-    public Symbol visit(NewNode node, MySymbolTable table){
-        //System.out.println("new node");
-        TableData data = table.lookup(node.getType_name(), "var");
-        //System.out.println(table.toString());
-        //System.out.println("test1");
+    public Symbol visit(BlockNode node, MySymbolTable table){
+        //last line of the block
+        List<ExpressionNode> expressions = node.getExprs();
+        //visit the last expression and get its type
+        node.setType(visit((ExpressionNode)expressions.get(expressions.size()-1), table));
+        return visit(node.getExprs(), table);
+    }
 
-        Symbol T = data.getType();
-        //System.out.println("test2");
+    @Override
+    public Symbol visit(MethodNode node, MySymbolTable table){
+        return visit(node.getExpr(), table);
+    }
+
+    @Override
+    public Symbol visit(NewNode node, MySymbolTable table){
+        Symbol T = node.getType_name();
         if (T.equals(TreeConstants.SELF_TYPE)){
             node.setType(T);
         }
         else{
             node.setType(T);
         }
-        //System.out.println("test3");
         return node.getType();
     }
 
@@ -394,8 +415,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         // table.graph.addId(name, parent);
 
         //System.out.println(table.lookup(node.getName(), "class").getType().getName());
-        //add to inheritance graph
-        table.graph.addId(node.getName(), TreeConstants.Object_);
+
         //System.out.println("CLASS HERE");
         return visit(node.getFeatures(), table);
     }
@@ -427,26 +447,27 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
         //add to symbol table and inheritance graph
         //System.out.println("add "+name.getName()+" with type "+type.getName());
         table.addId(name, "var", new TableData(type));
+
         return visit((ExpressionNode)node.getInit(), table); //attribute node returns no type if expression is empty
     }
 
     @Override
     public Symbol visit(AssignNode node, MySymbolTable table) {
-        //System.out.println(node.getName());
         TableData data = table.lookup(node.getName(), "var");
         //O(Id) = T
+
         Symbol T = data.getType();
 
         //if type of e1 is not equal to T'
         //O, M, C |- e1 : T'
-        Symbol identifierT = visit(node.getExpr(), table); //e1's type
-        //System.out.println(identifierT.getName() + T.getName());
 
+        Symbol identifierT = visit((ExpressionNode)node.getExpr(), table); //e1's type
         //identifierT not conforms to T
         if (!table.graph.conformance(identifierT, T)){
             //error
             System.out.println("error msg here");
         }
-        return node.getName();
+        node.setType(identifierT);
+        return node.getType();
     }
 }
