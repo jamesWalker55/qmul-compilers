@@ -9,13 +9,129 @@ import java.util.Stack;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-class MyInheritanceGraph{
-    //Symbol1 is the Object, Symbol2 is its parent
+class ObjectMap {
+    HashMap<Symbol, Symbol> map;
+
+    public ObjectMap() {
+        map = new HashMap<>();
+    }
+
+    public ObjectMap(HashMap<Symbol, Symbol> objectMap) {
+        this.map = objectMap;
+    }
+
+    public void put(Symbol name, Symbol type) {
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        if (type == null)
+            throw new IllegalArgumentException("Type cannot be null");
+        map.put(name, type);
+    }
+
+    public Symbol get(Symbol name) {
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        return map.get(name);
+    }
+
+    public ObjectMap clone() {
+        return new ObjectMap((HashMap<Symbol, Symbol>) map.clone());
+    }
+
+    /**
+     * Clone the object map and add a new assignment to it.
+     * The purpose of this is to handle rules like:
+     * `Oc[SELF_TYPEc / self]` or `Oc[T1 / xn]`.
+     */
+    public ObjectMap extend(Symbol name, Symbol type) {
+        ObjectMap omap = clone();
+        omap.put(name, type);
+        return omap;
+    }
+}
+
+class MethodMap {
+    HashMap<Symbol, List<Symbol>> map;
+
+    public MethodMap() {
+        map = new HashMap<>();
+    }
+
+    public MethodMap(HashMap<Symbol, List<Symbol>> map) {
+        this.map = map;
+    }
+
+    public void put(Symbol name, List<Symbol> signature) {
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        if (signature == null)
+            throw new IllegalArgumentException("Signature cannot be null");
+        map.put(name, signature);
+    }
+
+    public List<Symbol> get(Symbol name) {
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        return map.get(name);
+    }
+
+    public MethodMap clone() {
+        return new MethodMap((HashMap<Symbol, List<Symbol>>) map.clone());
+    }
+}
+
+class ClassInfo {
+    ObjectMap objectMap;
+    MethodMap methodMap;
+
+    public ClassInfo() {
+        objectMap = new ObjectMap();
+        methodMap = new MethodMap();
+    }
+
+    public ObjectMap getObjectMap() {
+        return objectMap;
+    }
+
+    public MethodMap getMethodMap() {
+        return methodMap;
+    }
+
+    static ClassInfo fromClassNode(ClassNode classNode) {
+        for (FeatureNode featureNode : classNode.getFeatures()) {
+            for (ExpressionNode node : (Tree) featureNode) {
+                
+            }
+        }
+        // nodes
+    }
+}
+
+class MyContext {
+    Symbol currentClass;
+    ObjectMap objectMap;
+
+    public MyContext(Symbol currentClass) {
+        this.currentClass = currentClass;
+        this.objectMap = new ObjectMap();
+    }
+
+    public ObjectMap getObjectMap() {
+        return objectMap;
+    }
+
+    public Symbol getCurrentClass() {
+        return currentClass;
+    }
+}
+
+class MyInheritanceGraph {
+    // Symbol1 is the Object, Symbol2 is its parent
     private Stack<HashMap<Symbol, Symbol>> tbl = new Stack<HashMap<Symbol, Symbol>>();
 
-    public MyInheritanceGraph(){
+    public MyInheritanceGraph() {
         enterScope();
-        //Object is the root
+        // Object is the root
         addId(TreeConstants.Object_, null);
         addId(TreeConstants.IO, TreeConstants.Object_);
         addId(TreeConstants.Int, TreeConstants.Object_);
@@ -27,33 +143,31 @@ class MyInheritanceGraph{
     }
 
     // if A ≤ B
-    public boolean conformance(Symbol A, Symbol B){
-        if (A.getName().equals(B.getName())){
+    public boolean conformance(Symbol A, Symbol B) {
+        if (A.getName().equals(B.getName())) {
             return true;
-        }
-        else if (lub(A,B).equals(B)){
-            //if A is a subclass, the lub is B
+        } else if (lub(A, B).equals(B)) {
+            // if A is a subclass, the lub is B
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
 
-    private ArrayList<Symbol> getPath(Symbol A){
+    private ArrayList<Symbol> getPath(Symbol A) {
         ArrayList<Symbol> listA = new ArrayList<Symbol>();
-        while(A != null){
-            listA.add(0, A); //push to front of array list
+        while (A != null) {
+            listA.add(0, A); // push to front of array list
             A = lookup(A);
         }
-        //System.out.println(listA);
+        // System.out.println(listA);
         return listA;
     }
 
-    //least upper bounds
-    public Symbol lub(Symbol A, Symbol B){
-        //go up to the top then keep going down until not the same
-        if (A.getName() == B.getName()){
+    // least upper bounds
+    public Symbol lub(Symbol A, Symbol B) {
+        // go up to the top then keep going down until not the same
+        if (A.getName() == B.getName()) {
             return A;
         }
 
@@ -61,11 +175,13 @@ class MyInheritanceGraph{
         ArrayList<Symbol> listB = getPath(B);
 
         int i = 0;
-        while (listA.get(i) == listB.get(i)){
-            if (i == listA.size()-1 || i == listB.size()-1){ break; }
+        while (listA.get(i) == listB.get(i)) {
+            if (i == listA.size() - 1 || i == listB.size() - 1) {
+                break;
+            }
             i++;
         }
-        //System.out.println("same: "+ listA.get(i).getName());
+        // System.out.println("same: "+ listA.get(i).getName());
         return listA.get(i);
     }
 
@@ -86,19 +202,19 @@ class MyInheritanceGraph{
     /**
      * Adds a new entry to the symbol table.
      *
-     * @param id   the symbol
-     * @param parent the data associated with id
+     * @param id     the symbol
+     * @param parent the ctx associated with id
      */
     public void addId(Symbol id, Symbol parent) {
         if (tbl.empty()) {
             Utilities.fatalError("addId: can't add a symbol without a scope.");
         }
         tbl.peek().put(id, parent);
-        //System.out.println(this.toString());
+        // System.out.println(this.toString());
     }
 
     /**
-     * Looks up an item through all scopes of the symbol table.  If
+     * Looks up an item through all scopes of the symbol table. If
      * found it returns the associated information field, if not it
      * returns <code>null</code>.
      *
@@ -113,86 +229,6 @@ class MyInheritanceGraph{
         // really a vector.
         for (int i = tbl.size() - 1; i >= 0; i--) {
             Symbol info = tbl.elementAt(i).get(sym);
-            if (info != null) return info;
-        }
-        return null;
-    }
-
-    /**
-     * Gets the string representation of the symbol table.
-     *
-     * @return the string rep
-     */
-    public String toString() {
-        String res = "";
-        // I break the abstraction here a bit by knowing that stack is
-        // really a vector...
-        for (int i = tbl.size() - 1, j = 0; i >= 0; i--, j++) {
-            res += "Scope " + j + ": " + tbl.elementAt(i) + "\n";
-        }
-        return res;
-    }
-}
-
-class MySymbolTable {
-    private Stack<HashMap<List<String>, TableData>> tbl = new Stack<HashMap<List<String>, TableData>>();
-    public MyInheritanceGraph graph = new MyInheritanceGraph();
-
-    public MySymbolTable() {
-        enterScope();
-    }
-
-    /**
-     * Enters a new scope. A scope must be entered before anything
-     * can be added to the table.
-     */
-    public void enterScope() {
-        tbl.push(new HashMap<List<String>, TableData>());
-    }
-
-    /**
-     * Exits the most recently entered scope.
-     */
-    public void exitScope() {
-        if (tbl.empty()) {
-            Utilities.fatalError("existScope: can't remove scope from an empty symbol table.");
-        }
-        tbl.pop();
-    }
-
-    private List<String> createKey(Symbol id, String kind) {
-        return Arrays.asList(id.getName(), kind);
-    }
-
-    /**
-     * Adds a new entry to the symbol table.
-     *
-     * @param id   the symbol
-     * @param info the data associated with id
-     */
-    public void addId(Symbol id, String kind, TableData info) {
-        if (tbl.empty()) {
-            Utilities.fatalError("addId: can't add a symbol without a scope.");
-        }
-        tbl.peek().put(createKey(id, kind), info);
-    }
-
-    /**
-     * Looks up an item through all scopes of the symbol table. If
-     * found it returns the associated information field, if not it
-     * returns <code>null</code>.
-     *
-     * @param sym the symbol
-     * @return the info associated with sym, or null if not found
-     */
-    public TableData lookup(Symbol id, String kind) {
-        if (tbl.empty()) {
-            Utilities.fatalError("lookup: no scope in symbol table.");
-        }
-        // I break the abstraction here a bit by knowing that stack is
-        // really a vector.
-        for (int i = tbl.size() - 1; i >= 0; i--) {
-            TableData info = tbl.elementAt(i).get(createKey(id, kind));
             if (info != null)
                 return info;
         }
@@ -200,21 +236,6 @@ class MySymbolTable {
     }
 
     /**
-     * Probes the symbol table. Check the top scope (only) for the
-     * symbol <code>sym</code>. If found, return the information field.
-     * If not return <code>null</code>.
-     *
-     * @param sym the symbol
-     * @return the info associated with sym, or null if not found
-     */
-    public TableData probe(Symbol id, String kind) {
-        if (tbl.empty()) {
-            Utilities.fatalError("lookup: no scope in symbol table.");
-        }
-        return tbl.peek().get(createKey(id, kind));
-    }
-
-    /**
      * Gets the string representation of the symbol table.
      *
      * @return the string rep
@@ -230,74 +251,60 @@ class MySymbolTable {
     }
 }
 
-class TableData {
-    Symbol type;
-    Object properties;
+public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
-    public TableData(Symbol type) {
-        this.type = type;
-    }
-
-    public TableData(Symbol type, Object properties) {
-        this.type = type;
-        this.properties = properties;
-    }
-
-    Object getProperties() {
-        return properties;
-    }
-
-    public Symbol getType(){
-        return this.type;
-    }
-}
-
-public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
+    HashMap<Symbol, ClassInfo> classMap;
 
     // go down the abstract syntax tree
     // then label each node with its type by proving the premises
 
     @Override
-    public Symbol visit(ProgramNode node, MySymbolTable data) {
+    public Symbol visit(ProgramNode node, MyContext ctx) {
         // creates a new context when the program starts
         // this context is passed down
 
-        data = new MySymbolTable();
-        firstPass(node.getClasses(), data); //first pass
-        return visit(node.getClasses(), data);
+        data = new MyContext();
+        firstPass(node.getClasses(), ctx); // first pass
+        visit(node.getClasses().get(0).getFeatures().get(0), ctx);
+        return visit(node.getClasses(), ctx);
     }
 
-    //first pass of the tree
-    public void firstPass(List<ClassNode> nodes, MySymbolTable data){
-        //inheritance graph
-        //for each class
-        for (int i=0;i<nodes.size();i++){
-            //add to inheritance graph
-            //assuming the class doesnt inherit another class ATM
-            data.graph.addId(nodes.get(i).getName(), TreeConstants.Object_);
-            data.addId(nodes.get(i).getName(), "class", new TableData(TreeConstants.Object_));
+    private void populateClassMap(ProgramNode node) {
+        for (ClassNode classNode : node.getClasses()) {
+            Symbol name = classNode.getName();
+            ClassInfo info = new ClassInfo();
         }
-        //System.out.println(data.graph.toString());
     }
 
-    @Override //rule for Not
-    public Symbol visit(CompNode node, MySymbolTable table){
-        //if e1 is of type bool
-        if(!visit(node.getE1(), table).equals(TreeConstants.Bool)){
-            //error
+    // first pass of the tree
+    public void firstPass(List<ClassNode> nodes, MyContext ctx) {
+        // inheritance graph
+        // for each class
+        for (int i = 0; i < nodes.size(); i++) {
+            // add to inheritance graph
+            // assuming the class doesnt inherit another class ATM
+            ctx.graph.addId(nodes.get(i).getName(), TreeConstants.Object_);
+            ctx.addId(nodes.get(i).getName(), "class", new TableData(TreeConstants.Object_));
         }
-        else{
+        // System.out.println(ctx.graph.toString());
+    }
+
+    @Override // rule for Not
+    public Symbol visit(CompNode node, MyContext table) {
+        // if e1 is of type bool
+        if (!visit(node.getE1(), table).equals(TreeConstants.Bool)) {
+            // error
+        } else {
             node.setType(TreeConstants.Bool);
         }
         return node.getType();
     }
 
     @Override
-    public Symbol visit(NegNode node, MySymbolTable table){
-        if(!visit(node.getE1(), table).equals(TreeConstants.Int)){
-            //error
-        }
-        else{
+    public Symbol visit(NegNode node, MyContext table) {
+        if (!visit(node.getE1(), table).equals(TreeConstants.Int)) {
+            // error
+        } else {
             node.setType(TreeConstants.Int);
         }
         return node.getType();
@@ -305,17 +312,17 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
 
     @Override
     // for {∗, +, −, /} operations
-    public Symbol visit(IntBinopNode node, MySymbolTable data) {
+    public Symbol visit(IntBinopNode node, MyContext ctx) {
 
         // if type is incorrect, send a semant error
         // O, M, C |- e1 : Int
-        if (!visit(node.getE1(), data).equals(TreeConstants.Int)) {
+        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
             // error format:
             // filename:ln: non-Int arguments: E1.Type + E2.Type
             Utilities.semantError().println("error here");
         }
         // O, M, C |- e2 : Int
-        if (!visit(node.getE2(), data).equals(TreeConstants.Int)) {
+        if (!visit(node.getE2(), ctx).equals(TreeConstants.Int)) {
             Utilities.semantError().println("error here");
             ;
         }
@@ -326,44 +333,44 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     }
 
     @Override
-    public Symbol visit(ExpressionNode node, MySymbolTable data) {
-        //System.out.println(node.toString());
+    public Symbol visit(ExpressionNode node, MyContext ctx) {
+        // System.out.println(node.toString());
         // check the expression's type
         // if it is a type set it
         // else, visit node
         // The rules shown in the manual:
         if (node instanceof AssignNode) {
-            visit((AssignNode)node, data);
+            visit((AssignNode) node, ctx);
         } else if (node instanceof NewNode) {
-            visit((NewNode) node, data);
+            visit((NewNode) node, ctx);
         } else if (node instanceof DispatchNode) {
-            visit((DispatchNode) node, data);
+            visit((DispatchNode) node, ctx);
         } else if (node instanceof StaticDispatchNode) {
-            visit((StaticDispatchNode) node, data);
+            visit((StaticDispatchNode) node, ctx);
         } else if (node instanceof CondNode) {
-            visit((CondNode) node, data);
+            visit((CondNode) node, ctx);
         } else if (node instanceof BlockNode) {
-            visit((BlockNode) node, data);
+            visit((BlockNode) node, ctx);
         } else if (node instanceof LetNode) {
-            visit((LetNode) node, data);
+            visit((LetNode) node, ctx);
         } else if (node instanceof CaseNode) {
-            visit((CaseNode) node, data);
+            visit((CaseNode) node, ctx);
         } else if (node instanceof LoopNode) {
-            visit((LoopNode) node, data);
+            visit((LoopNode) node, ctx);
         } else if (node instanceof IsVoidNode) {
-            visit((IsVoidNode) node, data);
+            visit((IsVoidNode) node, ctx);
         } else if (node instanceof BoolUnopNode) {
-            visit((BoolUnopNode) node, data);
+            visit((BoolUnopNode) node, ctx);
         } else if (node instanceof CompNode) {
-            visit((NegNode) node, data);
+            visit((NegNode) node, ctx);
         } else if (node instanceof IntBinopNode) {
-            visit((IntBinopNode) node, data);
+            visit((IntBinopNode) node, ctx);
         } else if (node instanceof EqNode) {
-            visit((EqNode) node, data);
+            visit((EqNode) node, ctx);
         } else if (node instanceof ObjectNode) {
-            visit((ObjectNode) node, data);
+            visit((ObjectNode) node, ctx);
         } else if (node instanceof NoExpressionNode) {
-        visit((NoExpressionNode) node, data);
+            visit((NoExpressionNode) node, ctx);
         }
         // basic types
         else if (node instanceof IntConstNode) {
@@ -380,91 +387,92 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MySymbolTable> {
     }
 
     @Override
-    public Symbol visit(BlockNode node, MySymbolTable table){
-        //last line of the block
+    public Symbol visit(BlockNode node, MyContext table) {
+        // last line of the block
         List<ExpressionNode> expressions = node.getExprs();
-        //visit the last expression and get its type
-        node.setType(visit((ExpressionNode)expressions.get(expressions.size()-1), table));
+        // visit the last expression and get its type
+        node.setType(visit((ExpressionNode) expressions.get(expressions.size() - 1), table));
         return visit(node.getExprs(), table);
     }
 
     @Override
-    public Symbol visit(MethodNode node, MySymbolTable table){
+    public Symbol visit(MethodNode node, MyContext table) {
         return visit(node.getExpr(), table);
     }
 
     @Override
-    public Symbol visit(NewNode node, MySymbolTable table){
+    public Symbol visit(NewNode node, MyContext table) {
         Symbol T = node.getType_name();
-        if (T.equals(TreeConstants.SELF_TYPE)){
+        if (T.equals(TreeConstants.SELF_TYPE)) {
             node.setType(T);
-        }
-        else{
+        } else {
             node.setType(T);
         }
         return node.getType();
     }
 
     @Override
-    public Symbol visit(ClassNode node, MySymbolTable table){
-        //add the current class to the context
+    public Symbol visit(ClassNode node, MyContext table) {
+        // add the current class to the context
         table.enterScope();
-        //System.out.println("add "+node.getName());
+        // System.out.println("add "+node.getName());
         table.addId(node.getName(), "class", new TableData(node.getName()));
-        // Symbol parent = table.graph.lookup(name); //look up the parent in the inheritance graph
+        // Symbol parent = table.graph.lookup(name); //look up the parent in the
+        // inheritance graph
         // table.graph.addId(name, parent);
 
-        //System.out.println(table.lookup(node.getName(), "class").getType().getName());
+        // System.out.println(table.lookup(node.getName(),
+        // "class").getType().getName());
 
-        //System.out.println("CLASS HERE");
+        // System.out.println("CLASS HERE");
         return visit(node.getFeatures(), table);
     }
 
     @Override
-    public Symbol visit(ObjectNode node, MySymbolTable table) {
+    public Symbol visit(ObjectNode node, MyContext table) {
         // this needs to check the symbol table
         String name = node.getName().toString();
-        //System.out.println("Object"+ name);
-        TableData data = table.lookup(node.getName(), "var");
-        if (data == null) {
-            //Utilities.fatalError("cool error mate");
+        // System.out.println("Object"+ name);
+        TableData ctx = table.lookup(node.getName(), "var");
+        if (ctx == null) {
+            // Utilities.fatalError("cool error mate");
         }
         return node.getType();
     }
 
     @Override
-    public Symbol visit(AttributeNode node, MySymbolTable table){
-        //Var rule
-        //setting the type to the listed type
-        //e.g x: Int;
-        //System.out.println("Attribute");
-        //System.out.println(node.getName());
+    public Symbol visit(AttributeNode node, MyContext table) {
+        // Var rule
+        // setting the type to the listed type
+        // e.g x: Int;
+        // System.out.println("Attribute");
+        // System.out.println(node.getName());
         Symbol name = node.getName();
-        //System.out.println(visit(node.getInit(), table).getName());
+        // System.out.println(visit(node.getInit(), table).getName());
         Symbol type = node.getType_decl();
-        //System.out.println("type "+type.toString());
+        // System.out.println("type "+type.toString());
 
-        //add to symbol table and inheritance graph
-        //System.out.println("add "+name.getName()+" with type "+type.getName());
+        // add to symbol table and inheritance graph
+        // System.out.println("add "+name.getName()+" with type "+type.getName());
         table.addId(name, "var", new TableData(type));
 
-        return visit((ExpressionNode)node.getInit(), table); //attribute node returns no type if expression is empty
+        return visit((ExpressionNode) node.getInit(), table); // attribute node returns no type if expression is empty
     }
 
     @Override
-    public Symbol visit(AssignNode node, MySymbolTable table) {
-        TableData data = table.lookup(node.getName(), "var");
-        //O(Id) = T
+    public Symbol visit(AssignNode node, MyContext table) {
+        TableData ctx = table.lookup(node.getName(), "var");
+        // O(Id) = T
 
-        Symbol T = data.getType();
+        Symbol T = ctx.getType();
 
-        //if type of e1 is not equal to T'
-        //O, M, C |- e1 : T'
+        // if type of e1 is not equal to T'
+        // O, M, C |- e1 : T'
 
-        Symbol identifierT = visit((ExpressionNode)node.getExpr(), table); //e1's type
-        //identifierT not conforms to T
-        if (!table.graph.conformance(identifierT, T)){
-            //error
+        Symbol identifierT = visit((ExpressionNode) node.getExpr(), table); // e1's type
+        // identifierT not conforms to T
+        if (!table.graph.conformance(identifierT, T)) {
+            // error
             System.out.println("error msg here");
         }
         node.setType(identifierT);
