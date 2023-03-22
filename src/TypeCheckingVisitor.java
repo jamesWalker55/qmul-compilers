@@ -322,50 +322,53 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // else, visit node
         // The rules shown in the manual:
         if (node instanceof AssignNode) {
-            visit((AssignNode) node, ctx);
+            return visit((AssignNode) node, ctx);
         } else if (node instanceof NewNode) {
-            visit((NewNode) node, ctx);
+            return visit((NewNode) node, ctx);
         } else if (node instanceof DispatchNode) {
-            visit((DispatchNode) node, ctx);
+            return visit((DispatchNode) node, ctx);
         } else if (node instanceof StaticDispatchNode) {
-            visit((StaticDispatchNode) node, ctx);
+            return visit((StaticDispatchNode) node, ctx);
         } else if (node instanceof CondNode) {
-            visit((CondNode) node, ctx);
+            return visit((CondNode) node, ctx);
         } else if (node instanceof BlockNode) {
-            visit((BlockNode) node, ctx);
+            return visit((BlockNode) node, ctx);
         } else if (node instanceof LetNode) {
-            visit((LetNode) node, ctx);
+            return visit((LetNode) node, ctx);
         } else if (node instanceof CaseNode) {
-            visit((CaseNode) node, ctx);
+            return visit((CaseNode) node, ctx);
         } else if (node instanceof LoopNode) {
-            visit((LoopNode) node, ctx);
+            return visit((LoopNode) node, ctx);
         } else if (node instanceof IsVoidNode) {
-            visit((IsVoidNode) node, ctx);
+            return visit((IsVoidNode) node, ctx);
         } else if (node instanceof BoolUnopNode) {
-            visit((BoolUnopNode) node, ctx);
+            return visit((BoolUnopNode) node, ctx);
         } else if (node instanceof CompNode) {
-            visit((NegNode) node, ctx);
+            return visit((NegNode) node, ctx);
         } else if (node instanceof IntBinopNode) {
-            visit((IntBinopNode) node, ctx);
+            return visit((IntBinopNode) node, ctx);
         } else if (node instanceof EqNode) {
-            visit((EqNode) node, ctx);
+            return visit((EqNode) node, ctx);
         } else if (node instanceof ObjectNode) {
-            visit((ObjectNode) node, ctx);
+            return visit((ObjectNode) node, ctx);
         } else if (node instanceof NoExpressionNode) {
-            visit((NoExpressionNode) node, ctx);
+            return visit((NoExpressionNode) node, ctx);
         }
         // basic types
         else if (node instanceof IntConstNode) {
             node.setType(TreeConstants.Int);
+            return TreeConstants.Int;
         } else if (node instanceof StringConstNode) {
             node.setType(TreeConstants.Str);
+            return TreeConstants.Str;
         } else if (node instanceof BoolConstNode) {
             node.setType(TreeConstants.Bool);
+            return TreeConstants.Bool;
         } else {
             // error for unknown class
             Utilities.semantError().println("ExpressionNode: Unknown node type: " + node.toString());
+            return node.getType();
         }
-        return node.getType();
     }
 
     @Override
