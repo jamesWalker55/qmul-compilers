@@ -506,7 +506,31 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Method]
     @Override
     public Symbol visit(MethodNode node, MyContext ctx) {
-        // TODO: Page 22 of manual
-        return visit(node.getExpr(), ctx);
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+
+        // This is Oc
+        ObjectMap classObjectMap = currentClassInfo.objectMap;
+        // Add Oc[SELF_TYPEc / self]
+        // Use extend() to clone the map as well as put something in it
+        // This is to avoid modifying the original Oc
+        ObjectMap newObjectMap = classObjectMap.extend(TreeConstants.self, TreeConstants.SELF_TYPE);
+        // Add each Oc[Tn / xn]
+        // Map is already cloned, can just use put() in the loop
+        for (FormalNode formalNode : node.getFormals()) {
+            newObjectMap.put(formalNode.getName(), formalNode.getType_decl());
+        }
+
+        // visit the expression using the new object map
+        ExpressionNode expr = node.getExpr();
+        Symbol exprType = visit(expr, ctx.with(newObjectMap));
+        
+        Symbol declaredType = node.getReturn_type();
+        if (declaredType.equals(TreeConstants.SELF_TYPE)) {
+            declaredType = ctx.currentClass;
+        }
+        if (!classMap.inheritsFrom(exprType, declaredType)) {
+            Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
+        }
+        return declaredType;
     }
 }
