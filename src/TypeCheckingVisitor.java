@@ -362,12 +362,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
         // basic types
         else if (node instanceof IntConstNode) {
+            // [Int]
             node.setType(TreeConstants.Int);
             return TreeConstants.Int;
         } else if (node instanceof StringConstNode) {
+            // [String]
             node.setType(TreeConstants.Str);
             return TreeConstants.Str;
         } else if (node instanceof BoolConstNode) {
+            // [True] / [False]
             node.setType(TreeConstants.Bool);
             return TreeConstants.Bool;
         } else {
