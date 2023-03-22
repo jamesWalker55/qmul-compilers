@@ -162,7 +162,7 @@ class MyContext {
     }
 
     public MyContext with(Symbol newClass) {
-        return new MyContext(newClass, objectMap);
+        return new MyContext(newClass, objectMap.clone());
     }
 
     public MyContext with(ObjectMap newObjectMap) {
@@ -244,6 +244,7 @@ class ClassMap {
         return chain;
     }
 
+    /** T' <= T */
     public boolean inheritsFrom(Symbol subType, Symbol parentType) {
         List<Symbol> subChain = inheritanceChain(subType);
         for (Symbol symbol : subChain) {
