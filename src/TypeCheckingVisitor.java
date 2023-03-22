@@ -35,6 +35,22 @@ class ObjectMap {
         return map.get(name);
     }
 
+    /**
+     * Try to get the name from the map. If not found, search in the default map
+     * @param name
+     * @param defaultMap
+     * @return
+     */
+    public Symbol get(Symbol name, ObjectMap defaultMap) {
+        if (name == null)
+            throw new IllegalArgumentException("Name cannot be null");
+        Symbol type = map.get(name);
+        if (type == null) {
+            type = defaultMap.get(name);
+        }
+        return type;
+    }
+
     public ObjectMap clone() {
         return new ObjectMap((HashMap<Symbol, Symbol>) map.clone());
     }
@@ -124,6 +140,19 @@ class MyContext {
         this.currentClass = currentClass;
         this.objectMap = new ObjectMap();
     }
+
+    public MyContext(Symbol currentClass, ObjectMap objectMap) {
+        this.currentClass = currentClass;
+        this.objectMap = objectMap;
+    }
+
+    public MyContext with(Symbol newClass) {
+        return new MyContext(newClass, objectMap);
+    }
+
+    public MyContext with(ObjectMap newObjectMap) {
+        return new MyContext(currentClass, newObjectMap);
+    }
 }
 
 class ClassMap {
@@ -133,7 +162,13 @@ class ClassMap {
         map = new HashMap<>();
     }
 
-    // public inheritsFrom(Symbol subType, Symbol parentType)
+    public ClassInfo get(Symbol name) {
+        return map.get(name);
+    }
+
+    public ClassInfo put(Symbol name, ClassInfo info) {
+        return map.put(name, info);
+    }
 
     public ArrayList<Symbol> inheritanceChain(Symbol className) {
         ArrayList<Symbol> chain = new ArrayList<>();
@@ -153,20 +188,45 @@ class ClassMap {
         return chain;
     }
 
+    public boolean inheritsFrom(Symbol subType, Symbol parentType) {
+        List<Symbol> subChain = inheritanceChain(subType);
+        for (Symbol symbol : subChain) {
+            if (symbol.equals(parentType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Symbol lub(Symbol x, Symbol y) {
         // if they are the same class, return either one
-        if (x.getName().equals(y.getName())) {
+        if (x.equals(y)) {
             return x;
         }
 
         List<Symbol> xChain = inheritanceChain(x);
         List<Symbol> yChain = inheritanceChain(y);
+
+        int i = 0;
+        while (true) {
+            x = xChain.get(i);
+            y = yChain.get(i);
+            if (x == null || y == null) break;
+            if (!x.equals(y)) break;
+            i += 1;
+        }
+
+        if (i == 0) {
+            return null;
+        } else {
+            return xChain.get(i - 1);
+        }
     }
 }
 
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
-    HashMap<Symbol, ClassInfo> classMap;
+    ClassMap classMap;
 
     // go down the abstract syntax tree
     // then label each node with its type by proving the premises
@@ -180,11 +240,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             visit(classNode, ctx);
         }
 
-        return visit(node.getClasses());
+        return null;
     }
 
     private void populateClassMap(ProgramNode node) {
-        classMap = new HashMap<>();
+        classMap = new ClassMap();
         for (ClassNode classNode : node.getClasses()) {
             Symbol name = classNode.getName();
             ClassInfo info = ClassInfo.fromClassNode(classNode);
@@ -255,51 +315,63 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Var]
     @Override
     public Symbol visit(ObjectNode node, MyContext ctx) {
-        Symbol type = ctx.objectMap.get(node.getName());
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+        Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
             Utilities.semantError().println("ObjectNode: Identifier not yet defined.");
+            return TreeConstants.No_type;
+        } else {
+            return type;
         }
-        return type;
     }
 
     // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
-        Symbol type = ctx.objectMap.get(node.getName());
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+        Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
             Utilities.semantError().println("AssignNode: Identifier not yet defined.");
+            return TreeConstants.No_type;
         }
+
+        ctx.objectMap.put(node.getName(), type);
+
         // if type of e1 is not equal to T'
         // O, M, C |- e1 : T'
         Symbol exprType = visit((ExpressionNode) node.getExpr(), ctx); // e1's type
 
         // exprType not conforms to T
-        if (!ctx.graph.conformance(exprType, T)) {
+        if (!classMap.inheritsFrom(exprType, type)) {
             // error
-            System.out.println("error msg here");
+            Utilities.semantError().println("AssignNode: Incompatible types: " + exprType.getName() + " <= " + type.getName());
         }
+
         node.setType(exprType);
-        return node.getType();
+        return exprType;
     }
 
     // [New]
     @Override
     public Symbol visit(NewNode node, MyContext ctx) {
-        Symbol T = node.getType_name();
-        if (T.equals(TreeConstants.SELF_TYPE)) {
-            node.setType(T);
+        Symbol nodeType = node.getType_name();
+        if (nodeType.equals(TreeConstants.SELF_TYPE)) {
+            node.setType(ctx.currentClass);
+            return ctx.currentClass;
         } else {
-            node.setType(T);
+            node.setType(nodeType);
+            return nodeType;
         }
-        return node.getType();
     }
 
     // [Sequence]
     @Override
     public Symbol visit(BlockNode node, MyContext ctx) {
         Symbol lastExprType = null;
+        ObjectMap nestedO = ctx.objectMap.clone();
+        MyContext nestedCtx = ctx.with(nestedO);
         for (ExpressionNode expr : node.getExprs()) {
-            lastExprType = visit(expr, ctx);
+            lastExprType = visit(expr, nestedCtx);
         }
         node.setType(lastExprType);
         return lastExprType;
@@ -309,23 +381,24 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(CompNode node, MyContext ctx) {
         // if e1 is of type bool
-        if (visit(node.getE1(), ctx).equals(TreeConstants.Bool)) {
-            node.setType(TreeConstants.Bool);
-        } else {
+        Symbol nodeType = visit(node.getE1(), ctx);
+        if (!nodeType.equals(TreeConstants.Bool)) {
             // error
-            Utilities.semantError().println("CompNode: ERROR");
+            Utilities.semantError().println("CompNode: Invalid type for complement: " + nodeType.getName());
         }
-        return node.getType();
+        node.setType(TreeConstants.Bool);
+        return TreeConstants.Bool;
     }
 
     // [Neg]
     @Override
     public Symbol visit(NegNode node, MyContext ctx) {
-        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
+        Symbol nodeType = visit(node.getE1(), ctx);
+        if (!nodeType.equals(TreeConstants.Int)) {
             // error
-        } else {
-            node.setType(TreeConstants.Int);
+            Utilities.semantError().println("NegNode: Invalid type for negation: " + nodeType.getName());
         }
+        node.setType(TreeConstants.Int);
         return node.getType();
     }
 
@@ -335,40 +408,42 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         // if type is incorrect, send a semant error
         // O, M, C |- e1 : Int
-        if (!visit(node.getE1(), ctx).equals(TreeConstants.Int)) {
+        Symbol nodeType1 = visit(node.getE1(), ctx);
+        if (!nodeType1.equals(TreeConstants.Int)) {
             // error format:
             // filename:ln: non-Int arguments: E1.Type + E2.Type
-            Utilities.semantError().println("error here");
+            Utilities.semantError().println("IntBinopNode: error here");
         }
         // O, M, C |- e2 : Int
-        if (!visit(node.getE2(), ctx).equals(TreeConstants.Int)) {
-            Utilities.semantError().println("error here");
-            ;
+        Symbol nodeType2 = visit(node.getE2(), ctx);
+        if (!nodeType2.equals(TreeConstants.Int)) {
+            Utilities.semantError().println("IntBinopNode: error here");
         }
         // op ∈ {∗, +, −, /}
         // operation is allowed and creates an int
         node.setType(TreeConstants.Int);
-        return node.getType();
+        return TreeConstants.Int;
     }
 
     // [Attr-Init] / [Attr-No-Init]
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
-        // Var rule
-        // setting the type to the listed type
-        // e.g x: Int;
-        // System.out.println("Attribute");
-        // System.out.println(node.getName());
-        Symbol name = node.getName();
-        // System.out.println(visit(node.getInit(), ctx).getName());
-        Symbol type = node.getType_decl();
-        // System.out.println("type "+type.toString());
-
-        // add to symbol ctx and inheritance graph
-        // System.out.println("add "+name.getName()+" with type "+type.getName());
-        ctx.addId(name, "var", new TableData(type));
-
-        return visit((ExpressionNode) node.getInit(), ctx); // attribute node returns no type if expression is empty
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+        Symbol declaredType = node.getType_decl();
+        ExpressionNode init = node.getInit();
+        if (init instanceof NoExpressionNode) {
+            // [Attr-No-Init]
+            // no type checking needed
+        } else {
+            // [Attr-Init]
+            ObjectMap newO = currentClassInfo.objectMap.extend(TreeConstants.self, ctx.currentClass);
+            MyContext newCtx = ctx.with(newO);
+            Symbol initType = visit(init, newCtx);
+            if (!classMap.inheritsFrom(initType, declaredType)) {
+                Utilities.semantError().println("AttributeNode: Initialisation expression does not have type: " + declaredType.getName());
+            }
+        }
+        return declaredType;
     }
 
     // [Method]
