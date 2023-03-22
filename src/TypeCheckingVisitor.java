@@ -435,6 +435,48 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
     }
 
+    // [Dispatch]
+    @Override
+    public Symbol visit(DispatchNode node, MyContext ctx) {
+        // T0'
+        Symbol exprType = visit(node.getExpr(), ctx);
+        if (exprType.equals(TreeConstants.SELF_TYPE)) {
+            exprType = ctx.currentClass;
+        }
+
+        // T0 ... Tn
+        List<Symbol> actualTypes = new ArrayList<>();
+        for (ExpressionNode exprNode : node.getActuals()) {
+            actualTypes.add(visit(exprNode, ctx));
+        }
+
+        MethodInfo methodInfo = classMap.get(exprType).methodMap.get(node.getName());
+
+        // T0' ... Tn'
+        List<Symbol> formalTypes = methodInfo.signature;
+        if (actualTypes.size() != formalTypes.size()) {
+            Utilities.semantError().println("DispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
+        } else {
+            for (int i = 0; i < formalTypes.size(); i++) {
+                Symbol actual = actualTypes.get(i);
+                Symbol formal = formalTypes.get(i);
+                if (!classMap.inheritsFrom(actual, formal)) {
+                    Utilities.semantError().println("DispatchNode: Parameter " + (i + 1) + " of " + exprType.getName() + "#" + node.getName() + " has incompatible types with signature: " + actual.getName() + " !<= " + formal.getName());
+                }
+            }
+        }
+
+        // T n+1
+        Symbol returnType;
+        if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
+            returnType = ctx.currentClass;
+        } else {
+            returnType = methodInfo.returnType;
+        }
+
+        return returnType;
+    }
+
     // [Sequence]
     @Override
     public Symbol visit(BlockNode node, MyContext ctx) {
