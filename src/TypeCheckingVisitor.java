@@ -231,6 +231,10 @@ class ClassMap {
         return map.put(name, info);
     }
 
+    /**
+     * Return a list of class names, representing the inheritance chain of the given class.
+     * Will return null if the class inherits from a non-existent class.
+     */
     public ArrayList<Symbol> inheritanceChain(Symbol className) {
         ArrayList<Symbol> chain = new ArrayList<>();
         while (className != null) {
@@ -242,7 +246,7 @@ class ClassMap {
                 // parent class doesn't exist, error
                 Utilities.semantError()
                         .println("ClassMap: Attempted to inherit from non-existent class: " + className.getName());
-                break;
+                return null;
             }
             className = info.parentClassName;
         }
@@ -252,6 +256,8 @@ class ClassMap {
     /** T' <= T */
     public boolean inheritsFrom(Symbol subType, Symbol parentType) {
         List<Symbol> subChain = inheritanceChain(subType);
+        if (subChain == null) return false;
+
         for (Symbol symbol : subChain) {
             if (symbol.equals(parentType)) {
                 return true;
