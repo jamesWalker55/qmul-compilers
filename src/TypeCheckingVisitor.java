@@ -527,7 +527,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // Add Oc[SELF_TYPEc / self]
         // Use extend() to clone the map as well as put something in it
         // This is to avoid modifying the original Oc
-        ObjectMap newObjectMap = classObjectMap.extend(TreeConstants.self, TreeConstants.SELF_TYPE);
+        ObjectMap newObjectMap = classObjectMap.extend(TreeConstants.self, ctx.currentClass);
         // Add each Oc[Tn / xn]
         // Map is already cloned, can just use put() in the loop
         for (FormalNode formalNode : node.getFormals()) {
