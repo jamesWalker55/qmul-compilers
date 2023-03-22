@@ -358,7 +358,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             node.setType(TreeConstants.Bool);
         } else {
             // error for unknown class
-            System.out.println("unknown");
+            Utilities.semantError().println("ExpressionNode: Unknown node type: " + node.toString());
         }
         return node.getType();
     }
