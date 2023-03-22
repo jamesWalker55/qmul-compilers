@@ -67,33 +67,45 @@ class ObjectMap {
     }
 }
 
+class MethodInfo {
+    Symbol returnType;
+    List<Symbol> signature;
+
+    public MethodInfo(Symbol returnType, List<Symbol> signature) {
+        this.returnType = returnType;
+        this.signature = signature;
+    }
+}
+
 class MethodMap {
-    HashMap<Symbol, List<Symbol>> map;
+    HashMap<Symbol, MethodInfo> map;
 
     public MethodMap() {
         map = new HashMap<>();
     }
 
-    public MethodMap(HashMap<Symbol, List<Symbol>> map) {
+    public MethodMap(HashMap<Symbol, MethodInfo> map) {
         this.map = map;
     }
 
-    public void put(Symbol name, List<Symbol> signature) {
+    public void put(Symbol name, Symbol returnType, List<Symbol> signature) {
         if (name == null)
             throw new IllegalArgumentException("Name cannot be null");
+        if (returnType == null)
+            throw new IllegalArgumentException("Return type cannot be null");
         if (signature == null)
             throw new IllegalArgumentException("Signature cannot be null");
-        map.put(name, signature);
+        map.put(name, new MethodInfo(returnType, signature));
     }
 
-    public List<Symbol> get(Symbol name) {
+    public MethodInfo get(Symbol name) {
         if (name == null)
             throw new IllegalArgumentException("Name cannot be null");
         return map.get(name);
     }
 
     public MethodMap clone() {
-        return new MethodMap((HashMap<Symbol, List<Symbol>>) map.clone());
+        return new MethodMap((HashMap<Symbol, MethodInfo>) map.clone());
     }
 }
 
@@ -119,7 +131,7 @@ class ClassInfo {
                         .stream()
                         .map(n -> n.getType_decl())
                         .collect(Collectors.toList());
-                info.methodMap.put(methodNode.getName(), signature);
+                info.methodMap.put(methodNode.getName(), methodNode.getReturn_type(), signature);
             } else if (featureNode instanceof AttributeNode) {
                 AttributeNode attributeNode = (AttributeNode) featureNode;
                 info.objectMap.put(attributeNode.getName(), attributeNode.getType_decl());
@@ -160,6 +172,47 @@ class ClassMap {
 
     public ClassMap() {
         map = new HashMap<>();
+
+        addObjectClassInfo();
+        addIOClassInfo();
+        addIntClassInfo();
+        addStringClassInfo();
+        addBoolClassInfo();
+    }
+
+    private void addObjectClassInfo() {
+        ClassInfo info = new ClassInfo(null);
+        info.methodMap.put(TreeConstants.cool_abort, TreeConstants.Object_, Arrays.asList());
+        info.methodMap.put(TreeConstants.type_name, TreeConstants.Str, Arrays.asList());
+        info.methodMap.put(TreeConstants.copy, TreeConstants.SELF_TYPE, Arrays.asList());
+        map.put(TreeConstants.Object_, info);
+    }
+
+    private void addIOClassInfo() {
+        ClassInfo info = new ClassInfo(null);
+        info.methodMap.put(TreeConstants.out_string, TreeConstants.SELF_TYPE, Arrays.asList(TreeConstants.Str));
+        info.methodMap.put(TreeConstants.out_int, TreeConstants.SELF_TYPE, Arrays.asList(TreeConstants.Int));
+        info.methodMap.put(TreeConstants.in_string, TreeConstants.Str, Arrays.asList());
+        info.methodMap.put(TreeConstants.in_int, TreeConstants.Int, Arrays.asList());
+        map.put(TreeConstants.IO, info);
+    }
+
+    private void addIntClassInfo() {
+        ClassInfo info = new ClassInfo(null);
+        map.put(TreeConstants.Int, info);
+    }
+
+    private void addStringClassInfo() {
+        ClassInfo info = new ClassInfo(null);
+        info.methodMap.put(TreeConstants.length, TreeConstants.Int, Arrays.asList());
+        info.methodMap.put(TreeConstants.concat, TreeConstants.Str, Arrays.asList(TreeConstants.Str));
+        info.methodMap.put(TreeConstants.substr, TreeConstants.Str, Arrays.asList(TreeConstants.Int, TreeConstants.Int));
+        map.put(TreeConstants.Str, info);
+    }
+
+    private void addBoolClassInfo() {
+        ClassInfo info = new ClassInfo(null);
+        map.put(TreeConstants.Bool, info);
     }
 
     public ClassInfo get(Symbol name) {
