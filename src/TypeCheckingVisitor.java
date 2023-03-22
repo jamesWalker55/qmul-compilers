@@ -145,8 +145,11 @@ class ClassInfo {
 }
 
 class MyContext {
+    // C of "O, M, C"
     Symbol currentClass;
+    // O of "O, M, C"
     ObjectMap objectMap;
+    // M of "O, M, C" is in the ClassInfo object
 
     public MyContext(Symbol currentClass) {
         this.currentClass = currentClass;
