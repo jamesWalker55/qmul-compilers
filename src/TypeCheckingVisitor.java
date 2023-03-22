@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 class ObjectMap {
+    // an object map, maps [object name] => [object type]
+    // may represent O or Oc depending on the context
     HashMap<Symbol, Symbol> map;
 
     public ObjectMap() {
@@ -35,12 +37,7 @@ class ObjectMap {
         return map.get(name);
     }
 
-    /**
-     * Try to get the name from the map. If not found, search in the default map
-     * @param name
-     * @param defaultMap
-     * @return
-     */
+    /** Try to get the name from the map. If not found, search in the default map */
     public Symbol get(Symbol name, ObjectMap defaultMap) {
         if (name == null)
             throw new IllegalArgumentException("Name cannot be null");
@@ -51,12 +48,13 @@ class ObjectMap {
         return type;
     }
 
+    /** Clone this object map to a new map */
     public ObjectMap clone() {
         return new ObjectMap((HashMap<Symbol, Symbol>) map.clone());
     }
 
     /**
-     * Clone the object map and add a new assignment to it.
+     * Convenience method for cloning the object map then adding a new assignment to it.
      * The purpose of this is to handle rules like:
      * `Oc[SELF_TYPEc / self]` or `Oc[T1 / xn]`.
      */
@@ -78,6 +76,7 @@ class MethodInfo {
 }
 
 class MethodMap {
+    // A map from [method name] => [method information]
     HashMap<Symbol, MethodInfo> map;
 
     public MethodMap() {
@@ -110,8 +109,11 @@ class MethodMap {
 }
 
 class ClassInfo {
+    // the name of the class this class inherits from
     Symbol parentClassName;
+    // Oc - Object map of the class
     ObjectMap objectMap;
+    // M - Method map of the class
     MethodMap methodMap;
 
     public ClassInfo(Symbol parentClassName) {
@@ -126,6 +128,7 @@ class ClassInfo {
         for (FeatureNode featureNode : classNode.getFeatures()) {
             if (featureNode instanceof MethodNode) {
                 MethodNode methodNode = (MethodNode) featureNode;
+                // map each feature node to its type declaration, returning a list of type declarations
                 List<Symbol> signature = methodNode
                         .getFormals()
                         .stream()
@@ -161,10 +164,12 @@ class MyContext {
         this.objectMap = objectMap;
     }
 
+    /** Return a copy of this context but replace the current class name with the given one */
     public MyContext with(Symbol newClass) {
         return new MyContext(newClass, objectMap.clone());
     }
 
+    /** Return a copy of this context but replace the object map with the given one */
     public MyContext with(ObjectMap newObjectMap) {
         return new MyContext(currentClass, newObjectMap);
     }
@@ -524,6 +529,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         ExpressionNode expr = node.getExpr();
         Symbol exprType = visit(expr, ctx.with(newObjectMap));
         
+        // check that T0' <= T0
         Symbol declaredType = node.getReturn_type();
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
             declaredType = ctx.currentClass;
