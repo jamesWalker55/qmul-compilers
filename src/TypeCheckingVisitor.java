@@ -197,7 +197,7 @@ class ClassMap {
     }
 
     private void addIOClassInfo() {
-        ClassInfo info = new ClassInfo(null);
+        ClassInfo info = new ClassInfo(TreeConstants.Object_);
         info.methodMap.put(TreeConstants.out_string, TreeConstants.SELF_TYPE, Arrays.asList(TreeConstants.Str));
         info.methodMap.put(TreeConstants.out_int, TreeConstants.SELF_TYPE, Arrays.asList(TreeConstants.Int));
         info.methodMap.put(TreeConstants.in_string, TreeConstants.Str, Arrays.asList());
@@ -206,12 +206,12 @@ class ClassMap {
     }
 
     private void addIntClassInfo() {
-        ClassInfo info = new ClassInfo(null);
+        ClassInfo info = new ClassInfo(TreeConstants.Object_);
         map.put(TreeConstants.Int, info);
     }
 
     private void addStringClassInfo() {
-        ClassInfo info = new ClassInfo(null);
+        ClassInfo info = new ClassInfo(TreeConstants.Object_);
         info.methodMap.put(TreeConstants.length, TreeConstants.Int, Arrays.asList());
         info.methodMap.put(TreeConstants.concat, TreeConstants.Str, Arrays.asList(TreeConstants.Str));
         info.methodMap.put(TreeConstants.substr, TreeConstants.Str, Arrays.asList(TreeConstants.Int, TreeConstants.Int));
@@ -219,7 +219,7 @@ class ClassMap {
     }
 
     private void addBoolClassInfo() {
-        ClassInfo info = new ClassInfo(null);
+        ClassInfo info = new ClassInfo(TreeConstants.Object_);
         map.put(TreeConstants.Bool, info);
     }
 
@@ -480,6 +480,34 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return returnType;
     }
 
+
+    // [If]
+    public Symbol join(Symbol A, Symbol B, MyContext ctx){
+        if (A.equals(B)){
+            return A;
+        }
+        else if (A.equals(TreeConstants.SELF_TYPE)){
+            return join(ctx.currentClass, A, ctx);
+        }
+        else{
+            return classMap.lub(A, B);
+        }
+    }
+    public Symbol visit(CondNode node, MyContext ctx) {
+        //e1 : Bool (if)
+        if(!visit(node.getCond(), ctx).equals(TreeConstants.Bool)) {
+            Utilities.semantError().println("CondNode: Invalid type for condition: ");
+        }
+        //e2: T2 (then)
+        Symbol T2 = visit(node.getElseExpr(), ctx);
+        //e3: T3 (else)
+        Symbol T3 = visit(node.getThenExpr(), ctx);
+
+        //if e1 then e2 else e3 fi :
+        node.setType(join(T2, T3, ctx));
+        return node.getType();
+    }
+    
     // [Sequence]
     @Override
     public Symbol visit(BlockNode node, MyContext ctx) {
