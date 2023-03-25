@@ -401,15 +401,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         if (type == null) {
             Utilities.semantError().println("ObjectNode: Identifier not yet defined.");
             node.setType(TreeConstants.No_type);
+            return TreeConstants.No_type;
+        } else if (node.getName().equals(TreeConstants.self)) {
+            System.out.println("DETECTED A: self");
+            node.setType(TreeConstants.SELF_TYPE);
+            return type;
         } else {
             node.setType(type);
+            return type;
         }
-
-        if (node.getName().getName().equals("self")){
-            System.out.println("true");
-            node.setType(TreeConstants.SELF_TYPE);
-        }
-        return type;
     }
 
     // [ASSIGN]
