@@ -90,7 +90,7 @@ if [ "$component" = "semant" ] ; then
     echo "lexer \$@ | parser \$@ | semant" > refsemant
     chmod +x refsemant
 
-    ./mysemant $COOL_DIR/examples/hello_world.cl
+    # ./mysemant $COOL_DIR/examples/hello_world.cl
 fi
 
 if [ "$component" = "backend" ] ; then
