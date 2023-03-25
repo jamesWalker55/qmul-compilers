@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -295,9 +296,14 @@ class ClassMap {
 public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     ClassMap classMap;
+    Symbol filename;
 
     // go down the abstract syntax tree
     // then label each node with its type by proving the premises
+
+    public String getFilename(){
+        return filename.getName();
+    }
 
     @Override
     public Symbol visit(ProgramNode node, MyContext _ctx) {
@@ -382,6 +388,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     @Override
     public Symbol visit(ClassNode node, MyContext _ctx) {
+        this.filename = node.getFilename();
         MyContext ctx = new MyContext(node.getName());
         return visit(node.getFeatures(), ctx);
     }
@@ -393,10 +400,16 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
             Utilities.semantError().println("ObjectNode: Identifier not yet defined.");
-            return TreeConstants.No_type;
+            node.setType(TreeConstants.No_type);
         } else {
-            return type;
+            node.setType(type);
         }
+
+        if (node.getName().getName().equals("self")){
+            System.out.println("true");
+            node.setType(TreeConstants.SELF_TYPE);
+        }
+        return type;
     }
 
     // [ASSIGN]
@@ -406,6 +419,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
             Utilities.semantError().println("AssignNode: Identifier not yet defined.");
+            node.setType(TreeConstants.No_type);
             return TreeConstants.No_type;
         }
 
@@ -464,7 +478,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
                 Symbol actual = actualTypes.get(i);
                 Symbol formal = formalTypes.get(i);
                 if (!classMap.inheritsFrom(actual, formal)) {
-                    Utilities.semantError().println("DispatchNode: Parameter " + (i + 1) + " of " + exprType.getName() + "#" + node.getName() + " has incompatible types with signature: " + actual.getName() + " !<= " + formal.getName());
+                    Utilities.semantError(this.filename, node).println(
+                        "In call of method "+node.getName()+", type "+actual.getName()+" of parameter b does not conform to declared type "+formal.getName()+"."
+                        );
                 }
             }
         }
@@ -476,7 +492,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         } else {
             returnType = methodInfo.returnType;
         }
-
+        node.setType(returnType);
         return returnType;
     }
 
@@ -617,7 +633,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             declaredType = ctx.currentClass;
         }
         if (!classMap.inheritsFrom(exprType, declaredType)) {
-            Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
+            Utilities.semantError(this.filename, node).println(
+                "Inferred return type "+exprType.getName()+" of method "+node.getName()+" does not conform to declared return type "+declaredType.getName()+"."
+                );
         }
         return declaredType;
     }
