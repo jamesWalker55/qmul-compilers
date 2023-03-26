@@ -361,14 +361,14 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             return visit((LoopNode) node, ctx);
         } else if (node instanceof IsVoidNode) {
             return visit((IsVoidNode) node, ctx);
-        } else if (node instanceof BoolUnopNode) {
-            return visit((BoolUnopNode) node, ctx);
         } else if (node instanceof CompNode) {
+            return visit((CompNode) node, ctx);
+        } else if (node instanceof NegNode) {
             return visit((NegNode) node, ctx);
         } else if (node instanceof IntBinopNode) {
             return visit((IntBinopNode) node, ctx);
-        } else if (node instanceof EqNode) {
-            return visit((EqNode) node, ctx);
+        } else if (node instanceof BoolBinopNode) {
+            return visit((BoolBinopNode) node, ctx);
         } else if (node instanceof ObjectNode) {
             return visit((ObjectNode) node, ctx);
         } else if (node instanceof NoExpressionNode) {
@@ -560,6 +560,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return node.getType();
     }
 
+    // [Isvoid]
+    @Override
+    public Symbol visit(IsVoidNode node, MyContext ctx) {
+        System.out.print(node.getE1().getType());
+        visit(node.getE1(), ctx);
+        node.setType(TreeConstants.Bool);
+        return node.getType();
+    }
+
     // [Not]
     @Override
     public Symbol visit(CompNode node, MyContext ctx) {
@@ -571,6 +580,24 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
         node.setType(TreeConstants.Bool);
         return TreeConstants.Bool;
+    }
+
+    // [Compare]
+    @Override
+    public Symbol visit(BoolBinopNode node, MyContext ctx){
+        if (node instanceof EqNode) {
+            return visit((EqNode) node, ctx);
+        }
+        else{   //LE or LT
+            if(!visit(node.getE1(), ctx).equals(TreeConstants.Int)){
+                Utilities.semantError();
+            }
+            if(!visit(node.getE2(), ctx).equals(TreeConstants.Int)){
+                Utilities.semantError();
+            }
+            node.setType(TreeConstants.Bool);
+            return node.getType();
+        }
     }
 
     // [Neg]
