@@ -224,6 +224,7 @@ class ClassMap {
         map.put(TreeConstants.Bool, info);
     }
 
+    //Should return ClassInfo but need Object incase null
     public ClassInfo get(Symbol name) {
         return map.get(name);
     }
@@ -321,6 +322,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         classMap = new ClassMap();
         for (ClassNode classNode : node.getClasses()) {
             Symbol name = classNode.getName();
+            //if classname already definied or is of the basic types send error
+            if (!classMap.get(name).equals(null)){
+                Utilities.semantError().println("class already definied");
+            }
+
             ClassInfo info = ClassInfo.fromClassNode(classNode);
             classMap.put(name, info);
         }
@@ -535,6 +541,21 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
         node.setType(lastExprType);
         return lastExprType;
+    }
+
+    // [Loop]
+    @Override
+    public Symbol visit(LoopNode node, MyContext ctx) {
+        //if e1 is bool
+        if(!visit(node.getCond(), ctx).equals(TreeConstants.Bool)){
+            Utilities.semantError();
+        }
+
+        // e2
+        visit(node.getBody(), ctx);
+
+        node.setType(TreeConstants.Object_);
+        return node.getType();
     }
 
     // [Not]
