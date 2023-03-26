@@ -608,6 +608,19 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
     }
 
+    // [Equal]
+    @Override
+    public Symbol visit(EqNode node, MyContext ctx) {
+        Symbol T1 = visit(node.getE1(), ctx);
+        Symbol T2 = visit(node.getE2(), ctx);
+
+        if (!T1.equals(T2)){
+            Utilities.semantError();
+        }
+        node.setType(TreeConstants.Bool);
+        return node.getType();
+    }
+
     // [Neg]
     @Override
     public Symbol visit(NegNode node, MyContext ctx) {
