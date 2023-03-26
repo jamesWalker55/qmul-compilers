@@ -328,6 +328,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
                 Utilities.semantError().println("class already definied");
                 break;
             }
+            //if inherits from bool or int or string or selftype send error
+            if (classNode.getParent().equals(TreeConstants.Bool)||
+            classNode.getParent().equals(TreeConstants.Int)||
+            classNode.getParent().equals(TreeConstants.Str)||
+            classNode.getParent().equals(TreeConstants.SELF_TYPE)
+            ){
+                Utilities.semantError().println("can't inherit from certain types");
+            }
+        
 
             ClassInfo info = ClassInfo.fromClassNode(classNode);
             classMap.put(name, info);
@@ -563,7 +572,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Isvoid]
     @Override
     public Symbol visit(IsVoidNode node, MyContext ctx) {
-        System.out.print(node.getE1().getType());
         visit(node.getE1(), ctx);
         node.setType(TreeConstants.Bool);
         return node.getType();
