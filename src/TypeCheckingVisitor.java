@@ -5,6 +5,7 @@ import ast.Symbol;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.text.Normalizer.Form;
@@ -323,8 +324,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         for (ClassNode classNode : node.getClasses()) {
             Symbol name = classNode.getName();
             //if classname already definied or is of the basic types send error
-            if (!classMap.get(name).equals(null)){
+            if (!Objects.isNull(classMap.get(name))){
                 Utilities.semantError().println("class already definied");
+                break;
             }
 
             ClassInfo info = ClassInfo.fromClassNode(classNode);
