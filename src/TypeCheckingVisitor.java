@@ -415,14 +415,15 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(ObjectNode node, MyContext ctx) {
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
-        if (type == null) {
-            Utilities.semantError().println("ObjectNode: Identifier not yet defined.");
-            node.setType(TreeConstants.No_type);
-            return TreeConstants.No_type;
-        } else if (node.getName().equals(TreeConstants.self)) {
+        if (node.getName().equals(TreeConstants.self)) {
             System.out.println("DETECTED A: self");
             node.setType(TreeConstants.SELF_TYPE);
             return type;
+        }
+        else if (type == null) {
+            Utilities.semantError().println("ObjectNode: Identifier not yet defined."+node.getName());
+            node.setType(TreeConstants.No_type);
+            return TreeConstants.No_type;
         } else {
             node.setType(type);
             return type;
