@@ -513,6 +513,57 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return returnType;
     }
 
+    // [StaticDispatch]
+    @Override
+    public Symbol visit(StaticDispatchNode node, MyContext ctx) {
+        // T0'
+        visit(node.getExpr(), ctx); //returns dont use SELF_TYPE
+        Symbol exprType = node.getExpr().getType();
+        if (exprType.equals(TreeConstants.SELF_TYPE)) {
+            Utilities.semantError();
+            return TreeConstants.SELF_TYPE;
+        }
+
+        // T0 ... Tn
+        List<Symbol> actualTypes = new ArrayList<>();
+        for (ExpressionNode exprNode : node.getActuals()) {
+            actualTypes.add(visit(exprNode, ctx));
+        }
+
+        //T0 conforms to T
+        Symbol T = node.getType_name();
+        if (!classMap.inheritsFrom(exprType, T)){
+            Utilities.semantError();
+        }
+
+        MethodInfo methodInfo = classMap.get(exprType).methodMap.get(node.getName());
+
+        // T0' ... Tn'
+        List<Symbol> formalTypes = methodInfo.signature;
+        if (actualTypes.size() != formalTypes.size()) {
+            Utilities.semantError().println("DispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
+        } else {
+            for (int i = 0; i < formalTypes.size(); i++) {
+                Symbol actual = actualTypes.get(i);
+                Symbol formal = formalTypes.get(i);
+                if (!classMap.inheritsFrom(actual, formal)) {
+                    Utilities.semantError(this.filename, node).println(
+                        "In call of method "+node.getName()+", type "+actual.getName()+" of parameter b does not conform to declared type "+formal.getName()+"."
+                        );
+                }
+            }
+        }
+
+        // T n+1
+        Symbol returnType;
+        if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
+            returnType = ctx.currentClass;
+        } else {
+            returnType = methodInfo.returnType;
+        }
+        node.setType(returnType);
+        return returnType;
+    }
 
     // [If]
     public Symbol join(Symbol A, Symbol B, MyContext ctx){
