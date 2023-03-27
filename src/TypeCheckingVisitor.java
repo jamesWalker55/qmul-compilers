@@ -326,7 +326,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             //if classname already definied or is of the basic types send error
             if (!Objects.isNull(classMap.get(name))){
                 Utilities.semantError().println("class already definied");
-                break;
+                return;
+            } else if(name.equals(TreeConstants.SELF_TYPE)){
+                Utilities.semantError().println("self in wrong place");
             }
             //if inherits from bool or int or string or selftype send error
             if (classNode.getParent().equals(TreeConstants.Bool)||
@@ -433,6 +435,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
+        if(node.getName().getName().equals("self")){
+            Utilities.semantError().println("self in wrong place");
+            return TreeConstants.No_type;
+        }
+        
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
@@ -609,6 +616,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Let-Init] / [Let-No-Init]
     @Override
     public Symbol visit(LetNode node, MyContext ctx) {
+        if(node.getIdentifier().getName().equals("self"))
+        {
+            Utilities.semantError().println("self in wrong place");
+        }
+
         //System.out.println(visit(node.getBody(), ctx).getName());
         // System.out.println(node.getIdentifier().getName());         //x
         // System.out.println(visit(node.getInit(), ctx).getName());   //NoExpressionNode
@@ -758,7 +770,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
         if(node.getName().getName().equals("self")){
-            Utilities.semantError().println("attribute named self");
+            Utilities.semantError().println("self in wrong place");
         }
 
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
@@ -793,6 +805,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // Add each Oc[Tn / xn]
         // Map is already cloned, can just use put() in the loop
         for (FormalNode formalNode : node.getFormals()) {
+            if(formalNode.getName().getName().equals("self")){
+                Utilities.semantError().println("self in wrong place");
+                return TreeConstants.No_type;
+            }
             newObjectMap.put(formalNode.getName(), formalNode.getType_decl());
         }
 
@@ -803,7 +819,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // check that T0' <= T0
         Symbol declaredType = node.getReturn_type();
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
-            declaredType = ctx.currentClass;
+            Utilities.semantError().println("self in wrong place");
         }
         if (!classMap.inheritsFrom(exprType, declaredType)) {
             Utilities.semantError(this.filename, node).println(
