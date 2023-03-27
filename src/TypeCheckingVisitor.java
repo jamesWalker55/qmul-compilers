@@ -664,6 +664,34 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
     }
 
+    // [Case]
+    @Override
+    public Symbol visit(CaseNode node, MyContext ctx){
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+        //e0:T0
+        visit(node.getExpr(), ctx);
+
+        //T1..Tn
+        List<BranchNode> cases = node.getCases();
+        List<Symbol> types = new ArrayList<>();
+        //each branch has a name, type_decl, expr
+        for (BranchNode branchNode : cases) {
+            ObjectMap newO = currentClassInfo.objectMap.extend(branchNode.getName(), branchNode.getType_decl());
+            MyContext newCtx = ctx.with(newO);
+    
+            visit(branchNode.getExpr(), newCtx);
+            types.add(branchNode.getExpr().getType());
+        }
+
+        //type is the join of all the cases
+        Symbol joinChain = types.get(0);
+        for (int i = 1; i < types.size()-1; i++) {
+            joinChain = join(joinChain, types.get(i), ctx);
+        }
+        node.setType(joinChain);
+        return node.getType();
+    }
+
     // [Loop]
     @Override
     public Symbol visit(LoopNode node, MyContext ctx) {
