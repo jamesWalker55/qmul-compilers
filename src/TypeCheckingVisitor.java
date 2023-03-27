@@ -757,6 +757,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Attr-Init] / [Attr-No-Init]
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
+        if(node.getName().getName().equals("self")){
+            Utilities.semantError().println("attribute named self");
+        }
+
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         Symbol declaredType = node.getType_decl();
         ExpressionNode init = node.getInit();
