@@ -605,6 +605,52 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return lastExprType;
     }
 
+    // [Let-Init] / [Let-No-Init]
+    @Override
+    public Symbol visit(LetNode node, MyContext ctx) {
+        //System.out.println(visit(node.getBody(), ctx).getName());
+        // System.out.println(node.getIdentifier().getName());         //x
+        // System.out.println(visit(node.getInit(), ctx).getName());   //NoExpressionNode
+        // System.out.println(node.getType_decl().getName());          //Int
+        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
+        Symbol declaredType = node.getType_decl();
+        ExpressionNode init = node.getInit();
+
+        Symbol T0Type;
+        if (declaredType.equals(TreeConstants.SELF_TYPE)) {
+            T0Type = ctx.currentClass;
+        } else {
+            T0Type = declaredType;
+        }
+
+        if (init instanceof NoExpressionNode) {
+            // [Let-No-Init]
+            ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
+            MyContext newCtx = ctx.with(newO);
+
+            visit(node.getBody(), newCtx);
+            Symbol T1Type = node.getBody().getType();
+            node.setType(T1Type);
+            return T1Type;
+        }
+        else{
+            // [Let-Init]
+            visit(node.getInit(), ctx);
+            Symbol T1Type = node.getInit().getType();
+            
+            if(!classMap.inheritsFrom(T1Type, T0Type)){
+                Utilities.semantError();
+            }
+
+            ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
+            MyContext newCtx = ctx.with(newO);
+    
+            Symbol T2Type = visit(node.getBody(), newCtx);
+            node.setType(T2Type);
+            return T2Type;
+        }
+    }
+
     // [Loop]
     @Override
     public Symbol visit(LoopNode node, MyContext ctx) {
