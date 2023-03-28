@@ -991,11 +991,16 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         ObjectMap newObjectMap = classObjectMap.extend(TreeConstants.self, ctx.currentClass);
         // Add each Oc[Tn / xn]
         // Map is already cloned, can just use put() in the loop
+        List<Symbol> formalNames = new ArrayList<Symbol>();
         for (FormalNode formalNode : node.getFormals()) {
             if(formalNode.getName().getName().equals("self")){
                 Error.semant("self in wrong place");
                 return TreeConstants.No_type;
             }
+            if (formalNames.contains(formalNode.getName())){
+                Error.semant("duplicate formal parameters");
+            }
+            formalNames.add(formalNode.getName());
             newObjectMap.put(formalNode.getName(), formalNode.getType_decl());
         }
 
