@@ -230,6 +230,40 @@ class ClassMap {
         return map.get(name);
     }
 
+    // Lookup a method name on a given class, following inheritance
+    // Will return null if method does not exist on the inherited class chain
+    public MethodInfo lookupMethod(Symbol className, Symbol methodName) {
+        ClassInfo info = get(className);
+        while (info != null) {
+            MethodInfo method = info.methodMap.get(methodName);
+            if (method != null) {
+                return method;
+            }
+            info = get(info.parentClassName);
+        }
+
+        // we searched through the entire chain and failed to find the method
+        // method does not exist
+        return null;
+    }
+
+    // Lookup an attribute name on a given class, following inheritance
+    // Will return null if attribute does not exist on the inherited class chain
+    public Symbol lookupObject(Symbol className, Symbol objectName) {
+        ClassInfo info = get(className);
+        while (info != null) {
+            Symbol objectType = info.objectMap.get(objectName);
+            if (objectType != null) {
+                return objectType;
+            }
+            info = get(info.parentClassName);
+        }
+
+        // we searched through the entire chain and failed to find the attribute
+        // attribute does not exist
+        return null;
+    }
+
     public ClassInfo put(Symbol name, ClassInfo info) {
         return map.put(name, info);
     }
