@@ -529,7 +529,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             actualTypes.add(visit(exprNode, ctx));
         }
 
-        MethodInfo methodInfo = classMap.get(exprType).methodMap.get(node.getName());
+        MethodInfo methodInfo = classMap.lookupMethod(exprType, node.getName());
 
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
