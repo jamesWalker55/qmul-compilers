@@ -889,9 +889,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Utilities.semantError().println("self in wrong place");
         }
         if (!classMap.inheritsFrom(exprType, declaredType)) {
-            Utilities.semantError(this.filename, node).println(
-                "Inferred return type "+exprType.getName()+" of method "+node.getName()+" does not conform to declared return type "+declaredType.getName()+"."
-                );
+            Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
         }
         return declaredType;
     }
