@@ -26,6 +26,9 @@ class Dbg {
         msg = "  ".repeat(level) + msg;
         System.out.println(msg);
     }
+    public static void out(MyContext ctx) {
+        out(String.format("ctx: %s %s", ctx.currentClass, ctx.objectMap.map));
+    }
     public static void indent() {
         level += 1;
     }
@@ -470,6 +473,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(ExpressionNode node, MyContext ctx) {
         Dbg.indent();
+        Dbg.out(ctx);
         // check the expression's type
         // if it is a type set it
         // else, visit node
