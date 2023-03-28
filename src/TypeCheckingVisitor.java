@@ -707,16 +707,22 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
 
     // [If]
-    public Symbol join(Symbol A, Symbol B, MyContext ctx){
-        if (A.equals(B)){
-            return A;
+    public Symbol join(MyContext ctx, Symbol... types){
+        if (types.length == 0) {
+            throw new IllegalArgumentException();
         }
-        else if (A.equals(TreeConstants.SELF_TYPE)){
-            return join(ctx.currentClass, A, ctx);
+        Symbol commonType = types[0];
+        if (commonType.equals(TreeConstants.SELF_TYPE)) {
+            commonType = ctx.currentClass;
         }
-        else{
-            return classMap.lub(A, B);
+        for (int i = 1; i < types.length; i++) {
+            Symbol type = types[i];
+            if (type.equals(TreeConstants.SELF_TYPE)) {
+                type = ctx.currentClass;
+            }
+            commonType = classMap.lub(commonType, type);
         }
+        return commonType;
     }
     public Symbol visit(CondNode node, MyContext ctx) {
         //e1 : Bool (if)
@@ -730,7 +736,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol T3 = visit(node.getThenExpr(), ctx);
 
         //if e1 then e2 else e3 fi :
-        node.setType(join(T2, T3, ctx));
+        node.setType(join(ctx, T2, T3));
         return node.getType();
     }
     
@@ -811,35 +817,38 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Case]
     @Override
     public Symbol visit(CaseNode node, MyContext ctx){
+        // System.out.println("test1");
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         //e0:T0
         visit(node.getExpr(), ctx);
-
+        // System.out.println("test2");
         //T1..Tn
         List<BranchNode> cases = node.getCases();
-        List<Symbol> types = new ArrayList<>();
+        List<Symbol> seenDeclaredTypes = new ArrayList<>();
+        List<Symbol> seenBodyTypes = new ArrayList<>();
         //each branch has a name, type_decl, expr
+        // System.out.println("test3");
         for (BranchNode branchNode : cases) {
+            // System.out.println(String.format("CaseNode: %s, %s", branchNode.getName(), branchNode.getType_decl()));
             ObjectMap newO = currentClassInfo.objectMap.extend(branchNode.getName(), branchNode.getType_decl());
             MyContext newCtx = ctx.with(newO);
     
             visit(branchNode.getExpr(), newCtx);
             //if duplicate of same type, send error
-            for (Symbol branchType : types) {
-                if (branchNode.getExpr().getType().equals(branchType)){
+            for (Symbol declaredType : seenDeclaredTypes) {
+                if (branchNode.getType_decl().equals(declaredType)){
                     Error.semant("Dupilicant branch type in case statement");
                 }
             }
-            types.add(branchNode.getExpr().getType());
+            seenDeclaredTypes.add(branchNode.getType_decl());
+            seenBodyTypes.add(branchNode.getExpr().getType());
         }
-
+        // System.out.println("test4");
         //type is the join of all the cases
-        Symbol joinChain = types.get(0);
-        for (int i = 1; i < types.size()-1; i++) {
-            joinChain = join(joinChain, types.get(i), ctx);
-        }
-        node.setType(joinChain);
-        return node.getType();
+        Symbol commonParentType = join(ctx, seenBodyTypes.toArray(new Symbol[0]));
+        node.setType(commonParentType);
+        // System.out.println("test5");
+        return commonParentType;
     }
 
     // [Loop]
@@ -975,7 +984,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             MyContext newCtx = ctx.with(newO);
             Symbol initType = visit(init, newCtx);
             if (!classMap.inheritsFrom(initType, declaredType)) {
-                Error.semant("AttributeNode: Initialisation expression does not have type: %s", declaredType.getName());
+                Error.semant("AttributeNode: Initialisation expression '%s' does not have type: '%s'", initType, declaredType);
             }
         }
         return declaredType;
