@@ -19,6 +19,12 @@ class Error {
     }
 }
 
+class Dbg {
+    public static void out(String format, Object... args) {
+        System.out.println(String.format(format, args));
+    }
+}
+
 class ObjectMap {
     // an object map, maps [object name] => [object type]
     // may represent O or Oc depending on the context
@@ -399,6 +405,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     @Override
     public Symbol visit(ProgramNode node, MyContext _ctx) {
+        Dbg.out("ProgramNode: Visit");
         populateClassMap(node);
 
         boolean mainExists = false;
@@ -509,6 +516,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     @Override
     public Symbol visit(ClassNode node, MyContext _ctx) {
+        Dbg.out("ClassNode: Visit");
         this.filename = node.getFilename();
         MyContext ctx = new MyContext(node.getName());
         return visit(node.getFeatures(), ctx);
@@ -517,12 +525,14 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Var]
     @Override
     public Symbol visit(ObjectNode node, MyContext ctx) {
+        Dbg.out("ObjectNode: Visit");
         if (node.getName().equals(TreeConstants.self)) {
             node.setType(TreeConstants.SELF_TYPE);
             return ctx.currentClass;
         }
 
         Symbol type = classMap.lookupObject(ctx.objectMap, ctx.currentClass, node.getName());
+        Dbg.out("ObjectNode: type = %s", type);
         if (type == null) {
             Error.semant("ObjectNode: Identifier not yet defined. %s", node.getName());
             node.setType(TreeConstants.No_type);
@@ -536,6 +546,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
+        Dbg.out("AssignNode: Visit");
         if(node.getName().equals(TreeConstants.self)){
             Error.semant("AssignNode: Assignment to 'self' is not allowed");
             return TreeConstants.No_type;
@@ -567,6 +578,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [New]
     @Override
     public Symbol visit(NewNode node, MyContext ctx) {
+        Dbg.out("NewNode: Visit");
         Symbol nodeType = node.getType_name();
         if (nodeType.equals(TreeConstants.SELF_TYPE)) {
             node.setType(TreeConstants.SELF_TYPE);
@@ -580,6 +592,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Dispatch]
     @Override
     public Symbol visit(DispatchNode node, MyContext ctx) {
+        Dbg.out("DispatchNode: Visit");
         // T0'
         // typecheck the expression with #visit()
         visit(node.getExpr(), ctx); // returns dont use SELF_TYPE
@@ -644,6 +657,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [StaticDispatch]
     @Override
     public Symbol visit(StaticDispatchNode node, MyContext ctx) {
+        Dbg.out("StaticDispatchNode: Visit");
         // T0'
         visit(node.getExpr(), ctx); //returns dont use SELF_TYPE
         Symbol exprType = node.getExpr().getType();
@@ -725,6 +739,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         return commonType;
     }
     public Symbol visit(CondNode node, MyContext ctx) {
+        Dbg.out("CondNode: Visit");
         //e1 : Bool (if)
         Symbol condType = visit(node.getCond(), ctx);
         if(!condType.equals(TreeConstants.Bool)) {
@@ -743,6 +758,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Sequence]
     @Override
     public Symbol visit(BlockNode node, MyContext ctx) {
+        Dbg.out("BlockNode: Visit");
         Symbol lastExprType = null;
         ObjectMap nestedO = ctx.objectMap.clone();
         MyContext nestedCtx = ctx.with(nestedO);
@@ -761,6 +777,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Let-Init] / [Let-No-Init]
     @Override
     public Symbol visit(LetNode node, MyContext ctx) {
+        Dbg.out("LetNode: Visit");
         if(node.getIdentifier().getName().equals("self"))
         {
             Error.semant("LetNode: self in wrong place");
@@ -817,19 +834,19 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Case]
     @Override
     public Symbol visit(CaseNode node, MyContext ctx){
-        // System.out.println("test1");
+        Dbg.out("CaseNode: Visit");
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         //e0:T0
         visit(node.getExpr(), ctx);
-        // System.out.println("test2");
+        Dbg.out("test2");
         //T1..Tn
         List<BranchNode> cases = node.getCases();
         List<Symbol> seenDeclaredTypes = new ArrayList<>();
         List<Symbol> seenBodyTypes = new ArrayList<>();
         //each branch has a name, type_decl, expr
-        // System.out.println("test3");
+        Dbg.out("test3");
         for (BranchNode branchNode : cases) {
-            // System.out.println(String.format("CaseNode: %s, %s", branchNode.getName(), branchNode.getType_decl()));
+            Dbg.out("CaseNode: %s, %s", branchNode.getName(), branchNode.getType_decl());
             ObjectMap newO = currentClassInfo.objectMap.extend(branchNode.getName(), branchNode.getType_decl());
             MyContext newCtx = ctx.with(newO);
     
@@ -843,17 +860,18 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             seenDeclaredTypes.add(branchNode.getType_decl());
             seenBodyTypes.add(branchNode.getExpr().getType());
         }
-        // System.out.println("test4");
+        Dbg.out("test4");
         //type is the join of all the cases
         Symbol commonParentType = join(ctx, seenBodyTypes.toArray(new Symbol[0]));
         node.setType(commonParentType);
-        // System.out.println("test5");
+        Dbg.out("test5");
         return commonParentType;
     }
 
     // [Loop]
     @Override
     public Symbol visit(LoopNode node, MyContext ctx) {
+        Dbg.out("LoopNode: Visit");
         //if e1 is bool
         Symbol condType = visit(node.getCond(), ctx);
         if(!condType.equals(TreeConstants.Bool)){
@@ -870,6 +888,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Isvoid]
     @Override
     public Symbol visit(IsVoidNode node, MyContext ctx) {
+        Dbg.out("IsVoidNode: Visit");
         visit(node.getE1(), ctx);
         node.setType(TreeConstants.Bool);
         return node.getType();
@@ -878,6 +897,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Not]
     @Override
     public Symbol visit(CompNode node, MyContext ctx) {
+        Dbg.out("CompNode: Visit");
         // if e1 is of type bool
         Symbol nodeType = visit(node.getE1(), ctx);
         if (!nodeType.equals(TreeConstants.Bool)) {
@@ -891,6 +911,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Compare]
     @Override
     public Symbol visit(BoolBinopNode node, MyContext ctx){
+        Dbg.out("BoolBinopNode: Visit");
         if (node instanceof EqNode) {
             return visit((EqNode) node, ctx);
         }
@@ -916,6 +937,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
     @Override
     public Symbol visit(EqNode node, MyContext ctx) {
+        Dbg.out("EqNode: Visit");
         Symbol T1 = visit(node.getE1(), ctx);
         Symbol T2 = visit(node.getE2(), ctx);
 
@@ -933,6 +955,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Neg]
     @Override
     public Symbol visit(NegNode node, MyContext ctx) {
+        Dbg.out("NegNode: Visit");
         Symbol nodeType = visit(node.getE1(), ctx);
         if (!nodeType.equals(TreeConstants.Int)) {
             // error
@@ -945,6 +968,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Arith]
     @Override
     public Symbol visit(IntBinopNode node, MyContext ctx) {
+        Dbg.out("IntBinopNode: Visit");
 
         // if type is incorrect, send a semant error
         // O, M, C |- e1 : Int
@@ -968,6 +992,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Attr-Init] / [Attr-No-Init]
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
+        Dbg.out("AttributeNode: Visit");
         if(node.getName().getName().equals("self")){
             Error.semant("self in wrong place");
         }
@@ -993,6 +1018,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Method]
     @Override
     public Symbol visit(MethodNode node, MyContext ctx) {
+        Dbg.out("MethodNode: Visit");
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
 
         // This is Oc
@@ -1032,6 +1058,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Error.semant(
                 "MethodNode: Method expression has incompatible type with declaration");
         }
+
+        Dbg.out("MethodNode: Reconstructed signature:");
+        Dbg.out("  %s(%s): %s { %s }", node.getName(), node.getFormals(), node.getReturn_type(), exprType);
 
         return declaredType;
     }
