@@ -724,6 +724,12 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             MyContext newCtx = ctx.with(newO);
     
             visit(branchNode.getExpr(), newCtx);
+            //if duplicate of same type, send error
+            for (Symbol branchType : types) {
+                if (branchNode.getExpr().getType().equals(branchType)){
+                    Utilities.semantError().println("Dupilicant branch type in case statement");
+                }
+            }
             types.add(branchNode.getExpr().getType());
         }
 
