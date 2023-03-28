@@ -763,7 +763,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         Symbol T0Type;
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
-            T0Type = ctx.currentClass;
+            T0Type = TreeConstants.SELF_TYPE;
         } else {
             T0Type = declaredType;
         }
@@ -783,14 +783,23 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             visit(node.getInit(), ctx);
             Symbol T1Type = node.getInit().getType();
             
-            if(!classMap.inheritsFrom(T1Type, T0Type)){
-                Error.semant("LetNode: Unknown error");
+            //if T0 is SELF_TYPE, T1 needs to be SELF_TYPE
+            if (T0Type.equals(TreeConstants.SELF_TYPE)) {
+                if (!T1Type.equals(TreeConstants.SELF_TYPE))
+                {
+                    Error.semant("LetNode: Unknown error");
+                }
             }
-
+            else{
+                if(!classMap.inheritsFrom(T1Type, T0Type)){
+                    Error.semant("LetNode: Unknown error");
+                }
+            }
             ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
             MyContext newCtx = ctx.with(newO);
     
-            Symbol T2Type = visit(node.getBody(), newCtx);
+            visit(node.getBody(), newCtx);
+            Symbol T2Type = node.getBody().getType();
             node.setType(T2Type);
             return T2Type;
         }
