@@ -469,8 +469,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [ASSIGN]
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
-        if(node.getName().getName().equals("self")){
-            Utilities.semantError().println("self in wrong place");
+        if(node.getName().equals(TreeConstants.self)){
+            Utilities.semantError().println("AssignNode: Assignment to 'self' is not allowed");
             return TreeConstants.No_type;
         }
         
