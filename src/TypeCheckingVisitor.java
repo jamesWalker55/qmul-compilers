@@ -503,7 +503,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(NewNode node, MyContext ctx) {
         Symbol nodeType = node.getType_name();
         if (nodeType.equals(TreeConstants.SELF_TYPE)) {
-            node.setType(ctx.currentClass);
+            node.setType(TreeConstants.SELF_TYPE);
             return ctx.currentClass;
         } else {
             node.setType(nodeType);
