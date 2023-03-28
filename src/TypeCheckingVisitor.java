@@ -1007,23 +1007,19 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // visit the expression using the new object map
         ExpressionNode expr = node.getExpr();
         Symbol exprType = visit(expr, ctx.with(newObjectMap));
-        
         // check that T0' <= T0
         Symbol declaredType = node.getReturn_type();
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
             if (!(exprType.equals(TreeConstants.self) || expr.getType().equals(TreeConstants.SELF_TYPE))
             ){
-                Error.semant("MethodNode: return type is not SELF_TYPE");;
+                Error.semant("MethodNode: return type is not SELF_TYPE");
             }
             declaredType = ctx.currentClass;
         }
         else if (!classMap.inheritsFrom(exprType, declaredType)) {
             Error.semant(
-                "MethodNode: Method expression has incompatible type with declaration: %s !<= %s",
-                exprType.getName(),
-                declaredType.getName());
+                "MethodNode: Method expression has incompatible type with declaration");
         }
-
 
         return declaredType;
     }
