@@ -594,7 +594,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         MethodInfo methodInfo = classMap.lookupMethod(exprType, node.getName());
         if (methodInfo == null) {
-            Error.semant("DispatchNode: Method %s does not exist on type %s", node, exprType);
+            Error.semant("DispatchNode: Method %s does not exist on type %s", node.getName(), exprType);
             return TreeConstants.No_type;
         }
 
@@ -661,7 +661,11 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Error.semant("StaticDispatchNode: Unknown error");
         }
 
-        MethodInfo methodInfo = classMap.lookupMethod(ctx.currentClass, node.getName());
+        MethodInfo methodInfo = classMap.lookupMethod(T, node.getName());
+        if (methodInfo == null) {
+            Error.semant("DispatchNode: Method %s does not exist on type %s", node.getName(), T);
+            return TreeConstants.No_type;
+        }
 
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
