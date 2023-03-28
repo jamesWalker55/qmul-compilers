@@ -408,7 +408,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         //if no main, send error
         if (mainExists == false){
-            Utilities.semantError().println("No main class.");
+            Error.semant("ProgramNode: No main class.");
         }
 
         return null;
@@ -980,7 +980,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
             if (!(exprType.equals(TreeConstants.self) || expr.getType().equals(TreeConstants.SELF_TYPE))
             ){
-                Utilities.semantError().println("return type is not SELF_TYPE");;
+                Error.semant("MethodNode: return type is not SELF_TYPE");;
             }
             declaredType = ctx.currentClass;
         }
