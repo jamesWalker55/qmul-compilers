@@ -345,9 +345,18 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(ProgramNode node, MyContext _ctx) {
         populateClassMap(node);
 
+        boolean mainExists = false;
         for (ClassNode classNode : node.getClasses()) {
             MyContext ctx = new MyContext(classNode.getName());
             visit(classNode, ctx);
+            if (classNode.getName().equals(TreeConstants.Main)){
+                mainExists = true;
+            }
+        }
+
+        //if no main, send error
+        if (mainExists == false){
+            Utilities.semantError().println("No main class.");
         }
 
         return null;
@@ -897,9 +906,13 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // check that T0' <= T0
         Symbol declaredType = node.getReturn_type();
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
+            if (!(exprType.equals(TreeConstants.self) || expr.getType().equals(TreeConstants.SELF_TYPE))
+            ){
+                Utilities.semantError().println("return type is not SELF_TYPE");;
+            }
             declaredType = ctx.currentClass;
         }
-        if (!classMap.inheritsFrom(exprType, declaredType)) {
+        else if (!classMap.inheritsFrom(exprType, declaredType)) {
             Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
         }
 
