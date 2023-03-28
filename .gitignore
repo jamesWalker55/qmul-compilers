@@ -39,3 +39,4 @@ assignments/pa3/testsuite
 
 # custom files
 delta_*.txt
+testoutput/
