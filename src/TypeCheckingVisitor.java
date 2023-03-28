@@ -405,6 +405,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             if (classNode.getName().equals(TreeConstants.Main)){
                 mainExists = true;
             }
+            //if classnode.parent not defined
+            if (classMap.get(classNode.getParent()) == null ){
+                Error.semant("Missing Class");
+            } 
         }
 
         //if no main, send error
@@ -730,7 +734,12 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         ObjectMap nestedO = ctx.objectMap.clone();
         MyContext nestedCtx = ctx.with(nestedO);
         for (ExpressionNode expr : node.getExprs()) {
-            lastExprType = visit(expr, nestedCtx);
+            visit(expr, nestedCtx);
+            lastExprType = expr.getType();
+        }
+        if (lastExprType.equals(TreeConstants.SELF_TYPE)) {
+            node.setType(TreeConstants.SELF_TYPE);
+            return ctx.currentClass;
         }
         node.setType(lastExprType);
         return lastExprType;
