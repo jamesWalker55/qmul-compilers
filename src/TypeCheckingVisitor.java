@@ -515,7 +515,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(DispatchNode node, MyContext ctx) {
         // T0'
-        visit(node.getExpr(), ctx); //returns dont use SELF_TYPE
+        // typecheck the expression with #visit()
+        visit(node.getExpr(), ctx); // returns dont use SELF_TYPE
         Symbol exprType = node.getExpr().getType();
         if (exprType.equals(TreeConstants.SELF_TYPE)) {
             exprType = ctx.currentClass;
