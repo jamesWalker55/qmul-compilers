@@ -46,17 +46,6 @@ class ObjectMap {
         return map.get(name);
     }
 
-    /** Try to get the name from the map. If not found, search in the default map */
-    public Symbol get(Symbol name, ObjectMap defaultMap) {
-        if (name == null)
-            throw new IllegalArgumentException("Name cannot be null");
-        Symbol type = map.get(name);
-        if (type == null) {
-            type = defaultMap.get(name);
-        }
-        return type;
-    }
-
     /** Clone this object map to a new map */
     public ObjectMap clone() {
         return new ObjectMap((HashMap<Symbol, Symbol>) map.clone());
@@ -269,6 +258,18 @@ class ClassMap {
         // we searched through the entire chain and failed to find the attribute
         // attribute does not exist
         return null;
+    }
+
+    // Lookup an attribute name in the local map first, then the given class, following inheritance
+    // Will return null if attribute does not exist locally or on the inherited class chain
+    public Symbol lookupObject(ObjectMap localMap, Symbol className, Symbol objectName) {
+        // First, search in local variables only
+        Symbol type = localMap.get(objectName);
+        // if not found, search in class inheritance chain
+        if (type == null) {
+            type = lookupObject(className, objectName);
+        }
+        return type;
     }
 
     public ClassInfo put(Symbol name, ClassInfo info) {
@@ -510,13 +511,12 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     // [Var]
     @Override
     public Symbol visit(ObjectNode node, MyContext ctx) {
-        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         if (node.getName().equals(TreeConstants.self)) {
             node.setType(TreeConstants.SELF_TYPE);
             return ctx.currentClass;
         }
 
-        Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
+        Symbol type = classMap.lookupObject(ctx.objectMap, ctx.currentClass, node.getName());
         if (type == null) {
             Error.semant("ObjectNode: Identifier not yet defined. %s", node.getName());
             node.setType(TreeConstants.No_type);
@@ -535,8 +535,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             return TreeConstants.No_type;
         }
         
-        ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
-        Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
+        Symbol type = classMap.lookupObject(ctx.objectMap, ctx.currentClass, node.getName());
         if (type == null) {
             Error.semant("AssignNode: Identifier not yet defined.");
             node.setType(TreeConstants.No_type);
@@ -658,7 +657,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Error.semant("StaticDispatchNode: Unknown error");
         }
 
-        MethodInfo methodInfo = classMap.get(exprType).methodMap.get(node.getName());
+        MethodInfo methodInfo = classMap.lookupMethod(ctx.currentClass, node.getName());
 
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
