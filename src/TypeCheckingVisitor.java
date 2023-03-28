@@ -447,7 +447,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     @Override
     public Symbol visit(ExpressionNode node, MyContext ctx) {
-        // System.out.println(node.toString());
         // check the expression's type
         // if it is a type set it
         // else, visit node
@@ -632,8 +631,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
         node.setType(returnType);
 
-        // System.out.println("DispatchNode: Reconstructed signature:");
-        // System.out.println(String.format("  (%s).%s(%s): %s (setType: %s)", exprType, node.getName(), node.getActuals(), methodInfo.returnType, node.getType()));
 
         return returnType;
     }
@@ -757,10 +754,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Error.semant("LetNode: self in wrong place");
         }
 
-        //System.out.println(visit(node.getBody(), ctx).getName());
-        // System.out.println(node.getIdentifier().getName());         //x
-        // System.out.println(visit(node.getInit(), ctx).getName());   //NoExpressionNode
-        // System.out.println(node.getType_decl().getName());          //Int
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         Symbol declaredType = node.getType_decl();
         ExpressionNode init = node.getInit();
@@ -1028,8 +1021,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
                 declaredType.getName());
         }
 
-        // System.out.println("MethodNode: Reconstructed signature:");
-        // System.out.println(String.format("  %s(%s): %s { %s }", node.getName(), node.getFormals(), node.getReturn_type(), exprType));
 
         return declaredType;
     }
