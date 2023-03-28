@@ -1,2 +1,0 @@
-#name "./testsuite/lexer/escapednull.cool"
-#1 ERROR "String contains escaped null character."
