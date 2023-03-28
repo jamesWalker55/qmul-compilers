@@ -5,6 +5,7 @@ import ast.Symbol;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -265,6 +266,54 @@ class ClassMap {
     }
 
     public ClassInfo put(Symbol name, ClassInfo info) {
+        // do error checking if it has a parent class
+        if (info.parentClassName != null) {
+            // cannot override attributes of inherited classes
+            for (Map.Entry<Symbol,Symbol> entry : info.objectMap.map.entrySet()) {
+                Boolean parentHasAttribute = lookupObject(info.parentClassName, entry.getKey()) != null;
+                if (parentHasAttribute) {
+                    Utilities.semantError().println(String.format(
+                        "ClassInfo: Attribute '%s' of '%s' conflicts attribute in '%s'",
+                        entry.getKey(),
+                        name,
+                        info.parentClassName
+                    ));
+                }
+            }
+            // can override methods of inherited classes, but signature must be the same
+            for (Map.Entry<Symbol,MethodInfo> entry : info.methodMap.map.entrySet()) {
+                Symbol methodName = entry.getKey();
+                MethodInfo method = entry.getValue();
+                MethodInfo parentMethod = lookupMethod(info.parentClassName, methodName);
+                if (parentMethod == null) continue;
+
+                // check parameter types
+                if (method.signature.size() != parentMethod.signature.size()) {
+                    Utilities.semantError().println(String.format(
+                        "ClassInfo: Method '%s' of '%s' has different number of parameters than that in '%s'",
+                        methodName,
+                        name,
+                        info.parentClassName
+                    ));
+                } else {
+                    for (int i = 0; i < method.signature.size(); i++) {
+                        Symbol a = method.signature.get(i);
+                        Symbol b = parentMethod.signature.get(i);
+                        if (!a.equals(b)) {
+                            Utilities.semantError().println(String.format(
+                                "ClassInfo: Parameter #%d of overriden method '%s.%s' doesn't match definition in '%s'",
+                                i,
+                                name,
+                                methodName,
+                                info.parentClassName
+                            ));
+
+                        }
+                    }
+                }
+            }
+        }
+        
         return map.put(name, info);
     }
 
