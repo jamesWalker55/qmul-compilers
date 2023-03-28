@@ -553,7 +553,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // T n+1
         Symbol returnType;
         if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
-            returnType = ctx.currentClass;
+            returnType = exprType;
         } else {
             returnType = methodInfo.returnType;
         }
@@ -609,7 +609,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // T n+1
         Symbol returnType;
         if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
-            returnType = ctx.currentClass;
+            returnType = exprType;
         } else {
             returnType = methodInfo.returnType;
         }
