@@ -367,6 +367,9 @@ class ClassMap {
 
         int i = 0;
         while (true) {
+            if (i >= xChain.size() || i >= yChain.size()) {
+                break;
+            }
             x = xChain.get(i);
             y = yChain.get(i);
             if (x == null || y == null) break;
