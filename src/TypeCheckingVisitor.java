@@ -558,6 +558,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             returnType = methodInfo.returnType;
         }
         node.setType(returnType);
+
+        // System.out.println("DispatchNode: Reconstructed signature:");
+        // System.out.println(String.format("  (%s).%s(%s): %s (setType: %s)", exprType, node.getName(), node.getActuals(), methodInfo.returnType, node.getType()));
+
         return returnType;
     }
 
@@ -589,7 +593,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
         if (actualTypes.size() != formalTypes.size()) {
-            Utilities.semantError().println("DispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
+            Utilities.semantError().println("StaticDispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
         } else {
             for (int i = 0; i < formalTypes.size(); i++) {
                 Symbol actual = actualTypes.get(i);
@@ -892,6 +896,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         if (!classMap.inheritsFrom(exprType, declaredType)) {
             Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
         }
+
+        // System.out.println("MethodNode: Reconstructed signature:");
+        // System.out.println(String.format("  %s(%s): %s { %s }", node.getName(), node.getFormals(), node.getReturn_type(), exprType));
+
         return declaredType;
     }
 }
