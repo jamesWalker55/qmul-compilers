@@ -190,7 +190,7 @@ class ClassMap {
         ClassInfo info = new ClassInfo(null);
         info.methodMap.put(TreeConstants.cool_abort, TreeConstants.Object_, Arrays.asList());
         info.methodMap.put(TreeConstants.type_name, TreeConstants.Str, Arrays.asList());
-        info.methodMap.put(TreeConstants.copy, TreeConstants.SELF_TYPE, Arrays.asList());
+        info.methodMap.put(TreeConstants.copy, TreeConstants.self, Arrays.asList());
         map.put(TreeConstants.Object_, info);
     }
 
@@ -624,13 +624,16 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         // T n+1
         Symbol returnType;
-        if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
+        if (methodInfo.returnType.equals(TreeConstants.self)) {
             returnType = exprType;
+            node.setType(returnType);
+        } else if (methodInfo.returnType.equals(TreeConstants.SELF_TYPE)) {
+            returnType = exprType;
+            node.setType(TreeConstants.SELF_TYPE);
         } else {
             returnType = methodInfo.returnType;
+            node.setType(returnType);
         }
-        node.setType(returnType);
-
 
         return returnType;
     }
