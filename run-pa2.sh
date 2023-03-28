@@ -1,3 +1,6 @@
+# To run refsemant, do this:
+# ./assignments/pa2/refsemant testsuite/semant/dispatch.test
+
 if [ -z "$1" ]
 then
     echo "Please provide a path to a cool file."
