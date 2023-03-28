@@ -20,8 +20,20 @@ class Error {
 }
 
 class Dbg {
+    public static Integer level = 0;
     public static void out(String format, Object... args) {
-        System.out.println(String.format(format, args));
+        String msg = String.format(format, args);
+        msg = "  ".repeat(level) + msg;
+        System.out.println(msg);
+    }
+    public static void indent() {
+        level += 1;
+    }
+    public static void dedent() {
+        if (level == 0) {
+            throw new IllegalArgumentException("DEBUG: Attempted to detent but level is already 0!");
+        }
+        level -= 1;
     }
 }
 
@@ -457,59 +469,96 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
     @Override
     public Symbol visit(ExpressionNode node, MyContext ctx) {
+        Dbg.indent();
         // check the expression's type
         // if it is a type set it
         // else, visit node
         // The rules shown in the manual:
         if (node instanceof AssignNode) {
-            return visit((AssignNode) node, ctx);
+            Symbol x = visit((AssignNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof NewNode) {
-            return visit((NewNode) node, ctx);
+            Symbol x = visit((NewNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof DispatchNode) {
-            return visit((DispatchNode) node, ctx);
+            Symbol x = visit((DispatchNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof StaticDispatchNode) {
-            return visit((StaticDispatchNode) node, ctx);
+            Symbol x = visit((StaticDispatchNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof CondNode) {
-            return visit((CondNode) node, ctx);
+            Symbol x = visit((CondNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof BlockNode) {
-            return visit((BlockNode) node, ctx);
+            Symbol x = visit((BlockNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof LetNode) {
-            return visit((LetNode) node, ctx);
+            Symbol x = visit((LetNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof CaseNode) {
-            return visit((CaseNode) node, ctx);
+            Symbol x = visit((CaseNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof LoopNode) {
-            return visit((LoopNode) node, ctx);
+            Symbol x = visit((LoopNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof IsVoidNode) {
-            return visit((IsVoidNode) node, ctx);
+            Symbol x = visit((IsVoidNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof CompNode) {
-            return visit((CompNode) node, ctx);
+            Symbol x = visit((CompNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof NegNode) {
-            return visit((NegNode) node, ctx);
+            Symbol x = visit((NegNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof IntBinopNode) {
-            return visit((IntBinopNode) node, ctx);
+            Symbol x = visit((IntBinopNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof BoolBinopNode) {
-            return visit((BoolBinopNode) node, ctx);
+            Symbol x = visit((BoolBinopNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof ObjectNode) {
-            return visit((ObjectNode) node, ctx);
+            Symbol x = visit((ObjectNode) node, ctx);
+            Dbg.dedent();
+            return x;
         } else if (node instanceof NoExpressionNode) {
-            return visit((NoExpressionNode) node, ctx);
+            Symbol x = visit((NoExpressionNode) node, ctx);
+            Dbg.dedent();
+            return x;
         }
         // basic types
         else if (node instanceof IntConstNode) {
             // [Int]
             node.setType(TreeConstants.Int);
+            Dbg.dedent();
             return TreeConstants.Int;
         } else if (node instanceof StringConstNode) {
             // [String]
             node.setType(TreeConstants.Str);
+            Dbg.dedent();
             return TreeConstants.Str;
         } else if (node instanceof BoolConstNode) {
             // [True] / [False]
             node.setType(TreeConstants.Bool);
+            Dbg.dedent();
             return TreeConstants.Bool;
         } else {
             // error for unknown class
             Error.semant("ExpressionNode: Unknown node type: %s", node.toString());
+            Dbg.dedent();
             return node.getType();
         }
     }
