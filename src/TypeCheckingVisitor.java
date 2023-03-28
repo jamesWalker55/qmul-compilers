@@ -530,6 +530,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
 
         MethodInfo methodInfo = classMap.lookupMethod(exprType, node.getName());
+        if (methodInfo == null) {
+            Utilities.semantError().println("DispatchNode: Method " + node + " does not exist on type " + exprType);
+            return TreeConstants.No_type;
+        }
 
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
