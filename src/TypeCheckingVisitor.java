@@ -886,7 +886,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // check that T0' <= T0
         Symbol declaredType = node.getReturn_type();
         if (declaredType.equals(TreeConstants.SELF_TYPE)) {
-            Utilities.semantError().println("self in wrong place");
+            declaredType = ctx.currentClass;
         }
         if (!classMap.inheritsFrom(exprType, declaredType)) {
             Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
