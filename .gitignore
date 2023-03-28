@@ -36,3 +36,6 @@ assignments/pa3/testsuite
 *.DS_Store
 
 **/.antlr/
+
+# custom files
+delta_*.txt
