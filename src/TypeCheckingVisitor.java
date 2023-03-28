@@ -647,9 +647,8 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(DispatchNode node, MyContext ctx) {
         Dbg.out("DispatchNode: Visit");
         // T0'
-        // typecheck the expression with #visit()
-        visit(node.getExpr(), ctx); // returns dont use SELF_TYPE
-        Symbol exprType = node.getExpr().getType();
+        // typecheck the expression with #visit()        
+        Symbol exprType = visit(node.getExpr(), ctx);
         if (exprType.equals(TreeConstants.SELF_TYPE)) {
             exprType = ctx.currentClass;
         }
