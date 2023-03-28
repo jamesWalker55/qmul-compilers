@@ -24,7 +24,7 @@ class Dbg {
     public static void out(String format, Object... args) {
         String msg = String.format(format, args);
         msg = "  ".repeat(level) + msg;
-        System.out.println(msg);
+        // System.out.println(msg);
     }
     public static void out(MyContext ctx) {
         out(String.format("ctx: %s %s", ctx.currentClass, ctx.objectMap.map));
