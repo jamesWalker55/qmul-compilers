@@ -13,6 +13,12 @@ import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+class Error {
+    public static void semant(String format, Object... args) {
+        Utilities.semantError().println(String.format(format, args));
+    }
+}
+
 class ObjectMap {
     // an object map, maps [object name] => [object type]
     // may represent O or Oc depending on the context
@@ -272,12 +278,11 @@ class ClassMap {
             for (Map.Entry<Symbol,Symbol> entry : info.objectMap.map.entrySet()) {
                 Boolean parentHasAttribute = lookupObject(info.parentClassName, entry.getKey()) != null;
                 if (parentHasAttribute) {
-                    Utilities.semantError().println(String.format(
+                    Error.semant(
                         "ClassInfo: Attribute '%s' of '%s' conflicts attribute in '%s'",
                         entry.getKey(),
                         name,
-                        info.parentClassName
-                    ));
+                        info.parentClassName);
                 }
             }
             // can override methods of inherited classes, but signature must be the same
@@ -289,25 +294,22 @@ class ClassMap {
 
                 // check parameter types
                 if (method.signature.size() != parentMethod.signature.size()) {
-                    Utilities.semantError().println(String.format(
+                    Error.semant(
                         "ClassInfo: Method '%s' of '%s' has different number of parameters than that in '%s'",
                         methodName,
                         name,
-                        info.parentClassName
-                    ));
+                        info.parentClassName);
                 } else {
                     for (int i = 0; i < method.signature.size(); i++) {
                         Symbol a = method.signature.get(i);
                         Symbol b = parentMethod.signature.get(i);
                         if (!a.equals(b)) {
-                            Utilities.semantError().println(String.format(
+                            Error.semant(
                                 "ClassInfo: Parameter #%d of overriden method '%s.%s' doesn't match definition in '%s'",
                                 i,
                                 name,
                                 methodName,
-                                info.parentClassName
-                            ));
-
+                                info.parentClassName);
                         }
                     }
                 }
@@ -330,8 +332,9 @@ class ClassMap {
             ClassInfo info = map.get(className);
             if (info == null) {
                 // parent class doesn't exist, error
-                Utilities.semantError()
-                        .println("ClassMap: Attempted to inherit from non-existent class: " + className.getName());
+                Error.semant(
+                    "ClassMap: Attempted to inherit from non-existent class: %s",
+                    className.getName());
                 return null;
             }
             className = info.parentClassName;
@@ -417,10 +420,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Symbol name = classNode.getName();
             //if classname already definied or is of the basic types send error
             if (!Objects.isNull(classMap.get(name))){
-                Utilities.semantError().println("class already definied");
+                Error.semant("class already definied");
                 return;
             } else if(name.equals(TreeConstants.SELF_TYPE)){
-                Utilities.semantError().println("self in wrong place");
+                Error.semant("self in wrong place");
             }
             //if inherits from bool or int or string or selftype send error
             if (classNode.getParent().equals(TreeConstants.Bool)||
@@ -428,7 +431,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             classNode.getParent().equals(TreeConstants.Str)||
             classNode.getParent().equals(TreeConstants.SELF_TYPE)
             ){
-                Utilities.semantError().println("can't inherit from certain types");
+                Error.semant("can't inherit from certain types");
             }
         
 
@@ -492,7 +495,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             return TreeConstants.Bool;
         } else {
             // error for unknown class
-            Utilities.semantError().println("ExpressionNode: Unknown node type: " + node.toString());
+            Error.semant("ExpressionNode: Unknown node type: %s", node.toString());
             return node.getType();
         }
     }
@@ -515,7 +518,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
-            Utilities.semantError().println("ObjectNode: Identifier not yet defined."+node.getName());
+            Error.semant("ObjectNode: Identifier not yet defined. %s", node.getName());
             node.setType(TreeConstants.No_type);
             return TreeConstants.No_type;
         } else {
@@ -528,14 +531,14 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(AssignNode node, MyContext ctx) {
         if(node.getName().equals(TreeConstants.self)){
-            Utilities.semantError().println("AssignNode: Assignment to 'self' is not allowed");
+            Error.semant("AssignNode: Assignment to 'self' is not allowed");
             return TreeConstants.No_type;
         }
         
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         Symbol type = ctx.objectMap.get(node.getName(), currentClassInfo.objectMap);
         if (type == null) {
-            Utilities.semantError().println("AssignNode: Identifier not yet defined.");
+            Error.semant("AssignNode: Identifier not yet defined.");
             node.setType(TreeConstants.No_type);
             return TreeConstants.No_type;
         }
@@ -549,7 +552,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // exprType not conforms to T
         if (!classMap.inheritsFrom(exprType, type)) {
             // error
-            Utilities.semantError().println("AssignNode: Incompatible types: " + exprType.getName() + " <= " + type.getName());
+            Error.semant("AssignNode: Incompatible types: %s <= %s", exprType.getName(), type.getName());
         }
 
         node.setType(exprType);
@@ -588,22 +591,31 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         MethodInfo methodInfo = classMap.lookupMethod(exprType, node.getName());
         if (methodInfo == null) {
-            Utilities.semantError().println("DispatchNode: Method " + node + " does not exist on type " + exprType);
+            Error.semant("DispatchNode: Method %s does not exist on type %s", node, exprType);
             return TreeConstants.No_type;
         }
 
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
         if (actualTypes.size() != formalTypes.size()) {
-            Utilities.semantError().println("DispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
+            Error.semant(
+                "DispatchNode: Number of arguments to %s#%s differs from signature: %s != %s",
+                exprType.getName(),
+                node.getName(),
+                actualTypes.size(),
+                formalTypes.size());
         } else {
             for (int i = 0; i < formalTypes.size(); i++) {
                 Symbol actual = actualTypes.get(i);
                 Symbol formal = formalTypes.get(i);
                 if (!classMap.inheritsFrom(actual, formal)) {
-                    Utilities.semantError(this.filename, node).println(
-                        "In call of method "+node.getName()+", type "+actual.getName()+" of parameter b does not conform to declared type "+formal.getName()+"."
-                        );
+                    Error.semant(
+                        "DispatchNode: Parameter %d of %s#%s has incompatible types with signature: %s !<= %s",
+                        i + 1,
+                        exprType.getName(),
+                        node.getName(),
+                        actual.getName(),
+                        formal.getName());
                 }
             }
         }
@@ -630,7 +642,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         visit(node.getExpr(), ctx); //returns dont use SELF_TYPE
         Symbol exprType = node.getExpr().getType();
         if (exprType.equals(TreeConstants.SELF_TYPE)) {
-            Utilities.semantError();
+            Error.semant("StaticDispatchNode: SELF_TYPE not allowed as expression");
             return TreeConstants.SELF_TYPE;
         }
 
@@ -643,7 +655,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         //T0 conforms to T
         Symbol T = node.getType_name();
         if (!classMap.inheritsFrom(exprType, T)){
-            Utilities.semantError();
+            Error.semant("StaticDispatchNode: Unknown error");
         }
 
         MethodInfo methodInfo = classMap.get(exprType).methodMap.get(node.getName());
@@ -651,15 +663,24 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // T0' ... Tn'
         List<Symbol> formalTypes = methodInfo.signature;
         if (actualTypes.size() != formalTypes.size()) {
-            Utilities.semantError().println("StaticDispatchNode: Number of arguments to " + exprType.getName() + "#" + node.getName() + " differs from signature: " + actualTypes.size() + " != " + formalTypes.size());
+            Error.semant(
+                "StaticDispatchNode: Number of arguments to %s#%s differs from signature: %s != %s",
+                exprType.getName(),
+                node.getName(),
+                actualTypes.size(),
+                formalTypes.size());
         } else {
             for (int i = 0; i < formalTypes.size(); i++) {
                 Symbol actual = actualTypes.get(i);
                 Symbol formal = formalTypes.get(i);
                 if (!classMap.inheritsFrom(actual, formal)) {
-                    Utilities.semantError(this.filename, node).println(
-                        "In call of method "+node.getName()+", type "+actual.getName()+" of parameter b does not conform to declared type "+formal.getName()+"."
-                        );
+                    Error.semant(
+                        "StaticDispatchNode: Parameter %d of %s#%s has incompatible types with signature: %s !<= %s",
+                        i + 1,
+                        exprType.getName(),
+                        node.getName(),
+                        actual.getName(),
+                        formal.getName());
                 }
             }
         }
@@ -689,8 +710,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
     public Symbol visit(CondNode node, MyContext ctx) {
         //e1 : Bool (if)
-        if(!visit(node.getCond(), ctx).equals(TreeConstants.Bool)) {
-            Utilities.semantError().println("CondNode: Invalid type for condition: ");
+        Symbol condType = visit(node.getCond(), ctx);
+        if(!condType.equals(TreeConstants.Bool)) {
+            Error.semant("CondNode: Condition is not a boolean: %s", condType);
         }
         //e2: T2 (then)
         Symbol T2 = visit(node.getElseExpr(), ctx);
@@ -720,7 +742,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(LetNode node, MyContext ctx) {
         if(node.getIdentifier().getName().equals("self"))
         {
-            Utilities.semantError().println("self in wrong place");
+            Error.semant("LetNode: self in wrong place");
         }
 
         //System.out.println(visit(node.getBody(), ctx).getName());
@@ -754,7 +776,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             Symbol T1Type = node.getInit().getType();
             
             if(!classMap.inheritsFrom(T1Type, T0Type)){
-                Utilities.semantError();
+                Error.semant("LetNode: Unknown error");
             }
 
             ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
@@ -785,7 +807,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             //if duplicate of same type, send error
             for (Symbol branchType : types) {
                 if (branchNode.getExpr().getType().equals(branchType)){
-                    Utilities.semantError().println("Dupilicant branch type in case statement");
+                    Error.semant("Dupilicant branch type in case statement");
                 }
             }
             types.add(branchNode.getExpr().getType());
@@ -804,8 +826,9 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(LoopNode node, MyContext ctx) {
         //if e1 is bool
-        if(!visit(node.getCond(), ctx).equals(TreeConstants.Bool)){
-            Utilities.semantError();
+        Symbol condType = visit(node.getCond(), ctx);
+        if(!condType.equals(TreeConstants.Bool)){
+            Error.semant("LoopNode: Condition is not a boolean: %s", condType);
         }
 
         // e2
@@ -830,7 +853,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol nodeType = visit(node.getE1(), ctx);
         if (!nodeType.equals(TreeConstants.Bool)) {
             // error
-            Utilities.semantError().println("CompNode: Invalid type for complement: " + nodeType.getName());
+            Error.semant("CompNode: Invalid type for complement: %s", nodeType.getName());
         }
         node.setType(TreeConstants.Bool);
         return TreeConstants.Bool;
@@ -844,10 +867,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         }
         else{   //LE or LT
             if(!visit(node.getE1(), ctx).equals(TreeConstants.Int)){
-                Utilities.semantError();
+                Error.semant("BoolBinopNode: Expression 1 is not an integer");
             }
             if(!visit(node.getE2(), ctx).equals(TreeConstants.Int)){
-                Utilities.semantError();
+                Error.semant("BoolBinopNode: Expression 2 is not an integer");
             }
             node.setType(TreeConstants.Bool);
             return node.getType();
@@ -861,7 +884,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol T2 = visit(node.getE2(), ctx);
 
         if (!T1.equals(T2)){
-            Utilities.semantError();
+            Error.semant("EqNode: Cannot compare values of different types: %s != %s", T1, T2);
         }
         node.setType(TreeConstants.Bool);
         return node.getType();
@@ -873,7 +896,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         Symbol nodeType = visit(node.getE1(), ctx);
         if (!nodeType.equals(TreeConstants.Int)) {
             // error
-            Utilities.semantError().println("NegNode: Invalid type for negation: " + nodeType.getName());
+            Error.semant("NegNode: Invalid type for negation: %s", nodeType.getName());
         }
         node.setType(TreeConstants.Int);
         return node.getType();
@@ -889,12 +912,12 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         if (!nodeType1.equals(TreeConstants.Int)) {
             // error format:
             // filename:ln: non-Int arguments: E1.Type + E2.Type
-            Utilities.semantError().println("IntBinopNode: error here");
+            Error.semant("IntBinopNode: error here");
         }
         // O, M, C |- e2 : Int
         Symbol nodeType2 = visit(node.getE2(), ctx);
         if (!nodeType2.equals(TreeConstants.Int)) {
-            Utilities.semantError().println("IntBinopNode: error here");
+            Error.semant("IntBinopNode: error here");
         }
         // op ∈ {∗, +, −, /}
         // operation is allowed and creates an int
@@ -906,7 +929,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     @Override
     public Symbol visit(AttributeNode node, MyContext ctx) {
         if(node.getName().getName().equals("self")){
-            Utilities.semantError().println("self in wrong place");
+            Error.semant("self in wrong place");
         }
 
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
@@ -921,7 +944,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             MyContext newCtx = ctx.with(newO);
             Symbol initType = visit(init, newCtx);
             if (!classMap.inheritsFrom(initType, declaredType)) {
-                Utilities.semantError().println("AttributeNode: Initialisation expression does not have type: " + declaredType.getName());
+                Error.semant("AttributeNode: Initialisation expression does not have type: %s", declaredType.getName());
             }
         }
         return declaredType;
@@ -942,7 +965,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
         // Map is already cloned, can just use put() in the loop
         for (FormalNode formalNode : node.getFormals()) {
             if(formalNode.getName().getName().equals("self")){
-                Utilities.semantError().println("self in wrong place");
+                Error.semant("self in wrong place");
                 return TreeConstants.No_type;
             }
             newObjectMap.put(formalNode.getName(), formalNode.getType_decl());
@@ -962,7 +985,10 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
             declaredType = ctx.currentClass;
         }
         else if (!classMap.inheritsFrom(exprType, declaredType)) {
-            Utilities.semantError().println("MethodNode: Method expression has incompatible type with declaration: " + exprType.getName() + " !<= " + declaredType.getName());
+            Error.semant(
+                "MethodNode: Method expression has incompatible type with declaration: %s !<= %s",
+                exprType.getName(),
+                declaredType.getName());
         }
 
         // System.out.println("MethodNode: Reconstructed signature:");
