@@ -83,6 +83,9 @@ class MethodMap {
 
     public MethodMap() {
         map = new HashMap<>();
+        put(TreeConstants.cool_abort, TreeConstants.Object_, Arrays.asList());
+        put(TreeConstants.type_name, TreeConstants.Str, Arrays.asList());
+        put(TreeConstants.copy, TreeConstants.SELF_TYPE, Arrays.asList());
     }
 
     public MethodMap(HashMap<Symbol, MethodInfo> map) {
