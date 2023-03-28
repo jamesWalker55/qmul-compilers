@@ -849,7 +849,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
 
         if (init instanceof NoExpressionNode) {
             // [Let-No-Init]
-            ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
+            ObjectMap newO = ctx.objectMap.extend(node.getIdentifier(), T0Type);
             MyContext newCtx = ctx.with(newO);
 
             visit(node.getBody(), newCtx);
@@ -874,7 +874,7 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
                     Error.semant("LetNode: Unknown error");
                 }
             }
-            ObjectMap newO = currentClassInfo.objectMap.extend(node.getIdentifier(), T0Type);
+            ObjectMap newO = ctx.objectMap.extend(node.getIdentifier(), T0Type);
             MyContext newCtx = ctx.with(newO);
     
             visit(node.getBody(), newCtx);
