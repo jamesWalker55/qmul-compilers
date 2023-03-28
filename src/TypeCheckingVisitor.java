@@ -451,8 +451,6 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     public Symbol visit(ObjectNode node, MyContext ctx) {
         ClassInfo currentClassInfo = classMap.get(ctx.currentClass);
         if (node.getName().equals(TreeConstants.self)) {
-            System.out.println("ObjectNode: This is a self");
-            System.out.println("ObjectNode: " + ctx.currentClass);
             node.setType(TreeConstants.SELF_TYPE);
             return ctx.currentClass;
         }
