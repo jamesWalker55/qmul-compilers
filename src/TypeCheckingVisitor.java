@@ -877,12 +877,23 @@ public class TypeCheckingVisitor extends BaseVisitor<Symbol, MyContext> {
     }
 
     // [Equal]
+    public Boolean isStrictComparableType(Symbol type) {
+        return (
+            type.equals(TreeConstants.Int) ||
+            type.equals(TreeConstants.Str) ||
+            type.equals(TreeConstants.Bool)
+        );
+    }
     @Override
     public Symbol visit(EqNode node, MyContext ctx) {
         Symbol T1 = visit(node.getE1(), ctx);
         Symbol T2 = visit(node.getE2(), ctx);
 
-        if (!T1.equals(T2)){
+        // According to the manual:
+        // The wrinkle in the rule for equality is that any types may be freely
+        // compared except Int, String and Bool, which may only be compared with
+        // objects of the same type.
+        if ((isStrictComparableType(T1) || isStrictComparableType(T2)) && !T1.equals(T2)) {
             Error.semant("EqNode: Cannot compare values of different types: %s != %s", T1, T2);
         }
         node.setType(TreeConstants.Bool);
