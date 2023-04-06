@@ -43,7 +43,8 @@ public class CgenCalcTemps extends BaseVisitor<Void, Void> {
 
     @Override
     public Void visit(BinopNode node, Void data) {
-        /* TODO */
+        /* WIP */
+        inc();
         return null;
     }
 

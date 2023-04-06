@@ -281,6 +281,22 @@ public class CgenEmit  {
     protected void emitNewline() {
         s.println();
     }
+
+    //custom print so we can print something into the MIPS file and see where we are
+    //Cgen.emitter.emitDebugPrint("WE ARE HERE");
+    protected void emitDebugPrint(Object text){
+        s.println(text);        //comment this out to get rid of all debug prints
+    }
+
+    //unsure if the offset should be passed in
+    protected void emitPush(){
+        //sw $a0 0($sp)
+        emitStore(CgenConstants.ACC, 0, CgenConstants.SP);
+
+        //addiu $sp $sp -4
+        emitAddiu(CgenConstants.SP, CgenConstants.SP, -4);
+    }
+
     /**
      * Emits an LW instruction.
      *

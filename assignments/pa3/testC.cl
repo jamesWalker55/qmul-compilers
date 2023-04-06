@@ -1,5 +1,5 @@
 class Main {
     main(): Object {
-        41
+        1+2
     };
 };

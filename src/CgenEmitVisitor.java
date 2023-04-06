@@ -197,7 +197,15 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(PlusNode node, String data) {
-        /* TODO */
+        /* WIP */
+        Cgen.emitter.emitDebugPrint("Add stuff");
+        String E1 = node.getE1().accept(this, CgenConstants.regNames[0]); //returns the register locations
+        //push
+        //Cgen.emitter.emitPush();
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        //add $a0 $t1 $a0
+        //pop
         return null;
     }
 

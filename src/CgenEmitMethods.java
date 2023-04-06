@@ -5,6 +5,7 @@ import ast.MethodNode;
 class CgenEmitMethods extends CgenEmitVisitor {
     @Override
     Void visit(CgenNode v) {
+        Cgen.emitter.emitDebugPrint("Visit");
         if (!v.basic()) {
             env = v.env;
             visit(v.getClassNode().getFeatures(),"");
@@ -22,7 +23,7 @@ class CgenEmitMethods extends CgenEmitVisitor {
     @Override
     public String visit(MethodNode node, String target) {
         if (Flags.cgen_debug) System.err.println("  Coding method: " + node.getName().getName());
-        int num_temps = env.methods.lookup(node.getName()).getTemps();
+        int num_temps = env.methods.lookup(node.getName()).getTemps(); //each +1 to this increases the stack pointer size by 4 bytes 
         int num_formals = node.getFormals().size();
         env.vars.enterScope();
 
@@ -38,21 +39,23 @@ class CgenEmitMethods extends CgenEmitVisitor {
 
         Cgen.emitter.emitMethodRef(env.getClassname(), node.getName());
         Cgen.emitter.emitLabel();
-        Cgen.emitter.prologue(num_temps);
-
+        Cgen.emitter.emitDebugPrint("WE ARE HERE0");
+        Cgen.emitter.prologue(num_temps); //this is where the MIPS for the method is
+        Cgen.emitter.emitDebugPrint("WE ARE HERE1");
         if (Flags.cgen_Memmgr_Debug == Flags.GC_DEBUG)
             for (int i = num_formals - 1; i >= 0; i--)
             {
                 Cgen.emitter.emitLoad(CgenConstants.A1, 3 + num_temps + i, CgenConstants.FP);
                 Cgen.emitter.emitGCCheck(CgenConstants.A1);
             }
-
-        String result = node.getExpr().accept(this, CgenConstants.ACC);
-        Cgen.emitter.emitMove(CgenConstants.ACC, result);
-
+        //the line below is where the MIPS line is printed
+        String result = node.getExpr().accept(this, CgenConstants.ACC); // CgenEmitMethods.visit(ExpressionNode, $a0)
+        //Cgen.emitter.emitDebugPrint(result);
+        Cgen.emitter.emitDebugPrint(node.getExpr().getType());
+        Cgen.emitter.emitMove(CgenConstants.ACC, result); //moves result to accumulator
         Cgen.emitter.epilogue(num_temps,num_formals);
+        Cgen.emitter.emitDebugPrint("WE ARE HERE3");
         env.vars.exitScope();
-
         return null;
     }
 }
