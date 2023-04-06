@@ -136,6 +136,19 @@ public class CgenEmit  {
         for (Symbol sym : StringTable.stringtable.values())
             codeDefString(sym);
 
+        // I dont think the order matters but this would replace the above 2 lines if it does
+        // int i = StringTable.stringtable.size();
+        // while (i > 0)
+        // {
+        //     for (Symbol sym : StringTable.stringtable.values())
+        //     {
+        //         if (sym.getIndex() == i-1){
+        //             codeDefString(sym);
+        //             i--;
+        //         }
+        //     }
+        // }
+            
         // Generates code definitions for all int constants in the int table.
         for (Symbol sym : StringTable.inttable.values())
             codeDefInt(sym);
@@ -247,6 +260,20 @@ public class CgenEmit  {
             else
                 s.print(CgenConstants.EMPTYSLOT);
 
+            s.println();
+        }
+    }
+
+    //printing info for dispatch table
+    protected void codeDispatchTable(CgenEnv env){
+        Symbol classname = env.getClassname();
+
+        s.print(classname+CgenConstants.DISPTAB_SUFFIX);
+        s.println(CgenConstants.LABEL);
+
+        for (int i = 0; i < env.getNumMethods(); i++) {
+            s.print(CgenConstants.WORD);
+            s.print(env.methodOffsets.lookup(i).classname.getName()+"."+env.methodOffsets.lookup(i).methodname);
             s.println();
         }
     }
@@ -897,6 +924,7 @@ public class CgenEmit  {
         codeRefInt(lensym);
         s.println(); // length
         emitStringConstant(sym.getName()); // ascii string
+        System.out.println(sym.getName());
         s.print(CgenConstants.ALIGN); // align to word
     }
 

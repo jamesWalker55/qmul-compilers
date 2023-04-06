@@ -6,6 +6,8 @@ class CgenEmitDispatchTables extends CgenVisitor {
     @Override
     Void visit(CgenNode v) {
       /* TODO */
+      Cgen.emitter.codeDispatchTable(v.env);
+      super.visit(v);
         return null;
     }
 }
