@@ -1,5 +1,5 @@
-class Main {
+class Main inherits IO{
     main(): Object {
-        1+2
+        out_int(1+2)
     };
 };

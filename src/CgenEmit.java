@@ -697,7 +697,7 @@ public class CgenEmit  {
         emitAddiu(CgenConstants.SP, CgenConstants.SP, -4);
     }
     protected void emitTop(String reg){ //peek at the top of the stack
-        emitLoad(reg, 0, CgenConstants.SP);
+        emitLoad(reg, 1, CgenConstants.SP);
     }
     protected void emitPop(String reg){
         emitTop(reg);
@@ -705,6 +705,9 @@ public class CgenEmit  {
     }
     protected void emitPop(){
         emitAddiu(CgenConstants.SP, CgenConstants.SP, 4);
+    }
+    protected void emitIntConstant(int  i){
+        emitLoadImm(CgenConstants.ACC, i);
     }
 
 

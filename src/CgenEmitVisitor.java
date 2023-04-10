@@ -197,12 +197,12 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(PlusNode node, String data) {
-        /* WIP */
-        String E1 = node.getE1().accept(this, CgenConstants.T1); //returns the register locations
-        String E2 = node.getE2().accept(this, CgenConstants.ACC);// puts E2 into Accumulator
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
         //push
         Cgen.emitter.emitPush(E1);//push E1 to top of stack
-        
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
         //$t1 := top
         Cgen.emitter.emitTop(CgenConstants.T1);
 
@@ -216,20 +216,59 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(SubNode node, String data) {
-        /* TODO */
-        return null;
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
+        //push
+        Cgen.emitter.emitPush(E1);//push E1 to top of stack
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+
+        //add $a0 $t1 $a0
+        Cgen.emitter.emitSub(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
+
+        //pop
+        Cgen.emitter.emitPop();
+        return CgenConstants.ACC;    //return the result address
     }
 
     @Override
     public String visit(MulNode node, String data) {
-        /* TODO */
-        return null;
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
+        //push
+        Cgen.emitter.emitPush(E1);//push E1 to top of stack
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+
+        //add $a0 $t1 $a0
+        Cgen.emitter.emitMul(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
+
+        //pop
+        Cgen.emitter.emitPop();
+        return CgenConstants.ACC;    //return the result address
     }
 
     @Override
     public String visit(DivideNode node, String data) {
-        /* TODO */
-        return null;
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
+        //push
+        Cgen.emitter.emitPush(E1);//push E1 to top of stack
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+
+        //add $a0 $t1 $a0
+        Cgen.emitter.emitDiv(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
+
+        //pop
+        Cgen.emitter.emitPop();
+        return CgenConstants.ACC;    //return the result address
     }
 
     //The calling convention for equality_test:
@@ -274,14 +313,14 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(BoolConstNode node, String target) {
-        /* TODO */
-        return null;
+        Cgen.emitter.emitLoadBool(target,node.getVal());
+        return target;
     }
 
     @Override
     public String visit(StringConstNode node, String target) {
-        /* TODO */
-        return null;
+        Cgen.emitter.emitLoadString(target,node.getVal());
+        return target;
     }
 
     @Override

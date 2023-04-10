@@ -46,8 +46,8 @@ class CgenEmitMethods extends CgenEmitVisitor {
                 Cgen.emitter.emitLoad(CgenConstants.A1, 3 + num_temps + i, CgenConstants.FP);
                 Cgen.emitter.emitGCCheck(CgenConstants.A1);
             }
-
-        String result = node.getExpr().accept(this, CgenConstants.ACC);
+        //the line below is where the MIPS line is printed
+        String result = node.getExpr().accept(this, CgenConstants.ACC); // CgenEmitMethods.visit(ExpressionNode, $a0)
         Cgen.emitter.emitMove(CgenConstants.ACC, result); //result should be a register, not null
 
         Cgen.emitter.epilogue(num_temps,num_formals);
