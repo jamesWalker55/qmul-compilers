@@ -348,29 +348,22 @@ Bool_init:
 	lw	$ra 4($sp)
 	addiu	$sp $sp 12
 	jr	$ra	
-Visit
-Visit
-Visit
-Visit
 Main.main:
-WE ARE HERE0
 	addiu	$sp $sp -16
 	sw	$fp 16($sp)
 	sw	$s0 12($sp)
 	sw	$ra 8($sp)
 	addiu	$fp $sp 4
 	move	$s0 $a0
-WE ARE HERE1
-Add stuff
-	la	$s1 int_const0
+	la	$t1 int_const0
 	la	$a0 int_const1
-Int
-	move	$a0 null
+	sw	$t1 0($sp)
+	addiu	$sp $sp -4
+	lw	$t1 0($sp)
+	add	$a0 $t1 $a0
+	addiu	$sp $sp 4
 	lw	$fp 16($sp)
 	lw	$s0 12($sp)
 	lw	$ra 8($sp)
 	addiu	$sp $sp 16
 	jr	$ra	
-WE ARE HERE3
-Visit
-Visit
