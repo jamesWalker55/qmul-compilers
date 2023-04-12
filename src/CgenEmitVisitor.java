@@ -180,9 +180,23 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     public String visit(CondNode node, String target) {
         /* WIP */
         // cgen(e1=e2)
-        String E1E2 = node.getCond().accept(this, CgenConstants.ACC); //E1 Top, E2
+        int labelThen = CgenEnv.getFreshLabel();
+        int labelElse = CgenEnv.getFreshLabel();
+        String E1E2 = node.getCond().accept(this, CgenConstants.ACC);
+        if (node.getCond() instanceof BoolConstNode){
+            Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
+            Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
+        }
 
+        // cgen(e4)
+        String E4 = node.getThenExpr().accept(this, CgenConstants.ACC);
+        Cgen.emitter.emitBranch(labelElse);
+        Cgen.emitter.emitLabelDef(labelThen);
         
+        // cgen(e3)
+        String E3 = node.getElseExpr().accept(this, CgenConstants.ACC);
+        Cgen.emitter.emitLabelDef(labelElse);
+
         return CgenConstants.ACC;
     }
 
@@ -253,6 +267,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     public String visit(EqNode node, String target) {
         /* WIP */
         //cgen(e1)
+        Cgen.emitter.emitDebugPrint("HERE3");
         String E1 = node.getE1().accept(this, CgenConstants.ACC);
         //push
         Cgen.emitter.emitPush(CgenConstants.ACC);
@@ -262,6 +277,9 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitTop(CgenConstants.T1);
         //pop
         Cgen.emitter.emitPop();
+
+        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.T1);
+        Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.ACC);
         //beq $a0 $t1 true_branch
         Cgen.emitter.emitBeq(CgenConstants.ACC, CgenConstants.T1, 0);
         return CgenConstants.ACC;

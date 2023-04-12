@@ -1,5 +1,5 @@
 class Main inherits IO{
     main(): Object {
-        out_int(10-4/2)
+        if true then out_string("True") else out_string("False")  fi
     };
 };

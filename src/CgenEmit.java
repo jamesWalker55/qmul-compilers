@@ -285,7 +285,7 @@ public class CgenEmit  {
     //custom print so we can print something into the MIPS file and see where we are
     //Cgen.emitter.emitDebugPrint("WE ARE HERE");
     protected void emitDebugPrint(Object text){
-        //s.println(text);        //comment this out to get rid of all debug prints
+        s.println(text);        //comment this out to get rid of all debug prints
     }
 
 
@@ -306,6 +306,12 @@ public class CgenEmit  {
         s.print(")");
         s.println();
     }
+    protected void emitLoadVal(String value_dest, String address_dest) {
+        emitLoad(value_dest, 3, address_dest);
+    }
+    protected void emitLoadVal(String register) {
+        emitLoadVal(register, register);
+    }
 
     /**
      * Emits an SW instruction.
@@ -319,6 +325,12 @@ public class CgenEmit  {
         s.println(CgenConstants.SW + source_reg + " "
                 + offset * CgenConstants.WORD_SIZE
                 + "(" + dest_reg + ")");
+    }
+    protected void emitStoreVal(String val_reg, String address_reg){
+        emitStore(val_reg, 12, address_reg);
+    }
+    protected void emitStoreVal(String register){
+        emitStoreVal(register, register);
     }
 
     /**
