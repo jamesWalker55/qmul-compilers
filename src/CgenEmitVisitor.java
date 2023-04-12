@@ -178,7 +178,11 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(CondNode node, String target) {
-        /* TODO */
+        /* WIP */
+        // cgen(e1=e2)
+        String E1E2 = node.getCond().accept(this, CgenConstants.ACC); //E1 Top, E2
+
+        
         return CgenConstants.ACC;
     }
 
@@ -195,23 +199,36 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         return null;
     }
 
+    
     @Override
-    public String visit(PlusNode node, String data) {
-        //cgen(e1)
+    public String visit(PlusNode node, String data){
+        // Cgen(e1)
+        // la	$a0 int_const0
         String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
-        //push
-        Cgen.emitter.emitPush(E1);//push E1 to top of stack
-        //cgen(e2)
+        // push
+        Cgen.emitter.emitPushAcc();
+        // Cgen(e2)
+        // la	$a0 int_const0
         String E2 = node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
 
-        //add $a0 $t1 $a0
-        Cgen.emitter.emitAdd(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
+        // jal	Object.copy
+        Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
+        // loading values from addresses (value of address $a0 into $t2), (value of address $s1 into $t1)
+        // top
+        Cgen.emitter.emitTop(CgenConstants.regNames[0]);
+        // lw	$t2 12($a0)
+        Cgen.emitter.emitLoad(CgenConstants.T2, 3, CgenConstants.ACC);
+        // lw	$t1 12($s1)
+        Cgen.emitter.emitLoad(CgenConstants.T1, 3, CgenConstants.regNames[0]);
 
-        //pop
+        // // add	$t2 $t1 $t2
+        Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+
+        // sw	$t1 12($a0) //value to address
+        Cgen.emitter.emitStore(CgenConstants.T1, 3, CgenConstants.ACC);
+        // pop
         Cgen.emitter.emitPop();
-        return CgenConstants.ACC;    //return the result address
+        return CgenConstants.ACC;
     }
 
     @Override
@@ -277,7 +294,19 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     //          Initial value of $a1, otherwise
     @Override
     public String visit(EqNode node, String target) {
-        /* TODO */
+        /* WIP */
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+        //push
+        Cgen.emitter.emitPush(CgenConstants.ACC);
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+        //pop
+        Cgen.emitter.emitPop();
+        //beq $a0 $t1 true_branch
+        Cgen.emitter.emitBeq(CgenConstants.ACC, CgenConstants.T1, 0);
         return CgenConstants.ACC;
     }
 
@@ -313,6 +342,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(BoolConstNode node, String target) {
+        System.out.println("BoolConstNode: "+node.getVal());
         Cgen.emitter.emitLoadBool(target,node.getVal());
         return target;
     }

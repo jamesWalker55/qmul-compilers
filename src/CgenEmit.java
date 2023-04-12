@@ -335,6 +335,7 @@ public class CgenEmit  {
         s.println();
     }
 
+
     /**
      * Emits an LA instruction.
      *
@@ -695,6 +696,9 @@ public class CgenEmit  {
     protected void emitPush(String reg) {
         emitStore(reg, 0, CgenConstants.SP);
         emitAddiu(CgenConstants.SP, CgenConstants.SP, -4);
+    }
+    protected void emitPushAcc(){
+        emitPush(CgenConstants.ACC);
     }
     protected void emitTop(String reg){ //peek at the top of the stack
         emitLoad(reg, 1, CgenConstants.SP);

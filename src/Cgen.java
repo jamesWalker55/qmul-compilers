@@ -20,10 +20,6 @@ public class Cgen  {
         int st = classTable.get(TreeConstants.Str).env.getClassTag();
         int it = classTable.get(TreeConstants.Int).env.getClassTag();
         int bt = classTable.get(TreeConstants.Bool).env.getClassTag();
-        //Unsure if these are supposed to be constants
-        // final int st = 4;
-        // final int it = 2;
-        // final int bt = 3;
         emitter = new CgenEmit(st, it, bt);
         //Flags.cgen_debug = true;
 
