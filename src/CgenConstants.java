@@ -133,7 +133,9 @@ final class CgenConstants {
     final static String CASE_ABORT = "_case_abort";
     final static String CASE_ABORT2 = "_case_abort2";
     final static String DISPATCH_ABORT = "_dispatch_abort";
-
+    //I think these two are correct but not sure
+    final static String FALSE = "bool_const0";
+    final static String TRUE = "bool_const1";
 
     // The following temporary name will not conflict with any
     // user-defined names.

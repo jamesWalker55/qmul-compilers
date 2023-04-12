@@ -307,7 +307,8 @@ public class CgenEmit  {
         s.println();
     }
     protected void emitLoadVal(String value_dest, String address_dest) {
-        emitLoad(value_dest, 3, address_dest);
+        //emitLoad(value_dest, 3, address_dest);
+        emitMove(value_dest, address_dest);
     }
     protected void emitLoadVal(String register) {
         emitLoadVal(register, register);

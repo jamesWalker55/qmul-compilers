@@ -187,6 +187,13 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
             Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
             Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
         }
+        else{
+            //	lw	$t1 12($a0)
+            Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
+
+            //beqz	$t1 label0
+            Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
+        }
 
         // cgen(e4)
         String E4 = node.getThenExpr().accept(this, CgenConstants.ACC);
@@ -265,9 +272,9 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     //          Initial value of $a1, otherwise
     @Override
     public String visit(EqNode node, String target) {
+        int label = CgenEnv.getFreshLabel();
         /* WIP */
         //cgen(e1)
-        Cgen.emitter.emitDebugPrint("HERE3");
         String E1 = node.getE1().accept(this, CgenConstants.ACC);
         //push
         Cgen.emitter.emitPush(CgenConstants.ACC);
@@ -277,11 +284,18 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitTop(CgenConstants.T1);
         //pop
         Cgen.emitter.emitPop();
+        //move $t2 $a0
+        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
+        // la	$a0 bool_const1
+        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
+        // beq $t1 $a0 label
+        Cgen.emitter.emitBeq(E1, E2, label);
+        // la	$a1 bool_const0
+        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+        // jal	equality_test
+        Cgen.emitter.emitJal(CgenConstants.EQUALITY_TEST);
 
-        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.T1);
-        Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.ACC);
-        //beq $a0 $t1 true_branch
-        Cgen.emitter.emitBeq(CgenConstants.ACC, CgenConstants.T1, 0);
+        Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
     }
 
