@@ -199,9 +199,9 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         return null;
     }
 
-    
-    @Override
-    public String visit(PlusNode node, String data){
+    //Arithmetic Operations for Add, Subtract, Divide, Multiply
+    @Override 
+    public String visit(IntBinopNode node, String data){
         // Cgen(e1)
         // la	$a0 int_const0
         String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
@@ -221,71 +221,28 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         // lw	$t1 12($s1)
         Cgen.emitter.emitLoad(CgenConstants.T1, 3, CgenConstants.regNames[0]);
 
-        // // add	$t2 $t1 $t2
-        Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+        if (node instanceof PlusNode){
+            // add	$t1 $t1 $t2
+            Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+        }
+        else if (node instanceof SubNode){
+            // sub	$t1 $t1 $t2
+            Cgen.emitter.emitSub(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+        }
+        else if (node instanceof MulNode){
+            // mul	$t1 $t1 $t2
+            Cgen.emitter.emitMul(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+        }
+        else if (node instanceof DivideNode){
+            // div	$t1 $t1 $t2
+            Cgen.emitter.emitDiv(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+        }
 
         // sw	$t1 12($a0) //value to address
         Cgen.emitter.emitStore(CgenConstants.T1, 3, CgenConstants.ACC);
         // pop
         Cgen.emitter.emitPop();
         return CgenConstants.ACC;
-    }
-
-    @Override
-    public String visit(SubNode node, String data) {
-        //cgen(e1)
-        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
-        //push
-        Cgen.emitter.emitPush(E1);//push E1 to top of stack
-        //cgen(e2)
-        String E2 = node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
-
-        //add $a0 $t1 $a0
-        Cgen.emitter.emitSub(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
-
-        //pop
-        Cgen.emitter.emitPop();
-        return CgenConstants.ACC;    //return the result address
-    }
-
-    @Override
-    public String visit(MulNode node, String data) {
-        //cgen(e1)
-        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
-        //push
-        Cgen.emitter.emitPush(E1);//push E1 to top of stack
-        //cgen(e2)
-        String E2 = node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
-
-        //add $a0 $t1 $a0
-        Cgen.emitter.emitMul(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
-
-        //pop
-        Cgen.emitter.emitPop();
-        return CgenConstants.ACC;    //return the result address
-    }
-
-    @Override
-    public String visit(DivideNode node, String data) {
-        //cgen(e1)
-        String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
-        //push
-        Cgen.emitter.emitPush(E1);//push E1 to top of stack
-        //cgen(e2)
-        String E2 = node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
-
-        //add $a0 $t1 $a0
-        Cgen.emitter.emitDiv(CgenConstants.ACC, CgenConstants.T1, CgenConstants.ACC);
-
-        //pop
-        Cgen.emitter.emitPop();
-        return CgenConstants.ACC;    //return the result address
     }
 
     //The calling convention for equality_test:

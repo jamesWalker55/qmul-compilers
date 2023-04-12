@@ -29,7 +29,7 @@ str_const8:
 	.word	5
 	.word	5
 	.word	String_dispTab
-	.word	int_const1
+	.word	int_const3
 	.byte	0	
 	.align	2
 	.word	-1
@@ -37,7 +37,7 @@ str_const0:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const2
+	.word	int_const4
 	.ascii	"test.cl"
 	.byte	0	
 	.align	2
@@ -46,7 +46,7 @@ str_const5:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const3
+	.word	int_const1
 	.ascii	"Bool"
 	.byte	0	
 	.align	2
@@ -55,7 +55,7 @@ str_const3:
 	.word	5
 	.word	5
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const2
 	.ascii	"IO"
 	.byte	0	
 	.align	2
@@ -82,7 +82,7 @@ str_const4:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const3
+	.word	int_const1
 	.ascii	"Main"
 	.byte	0	
 	.align	2
@@ -105,17 +105,11 @@ str_const6:
 	.byte	0	
 	.align	2
 	.word	-1
-int_const1:
+int_const3:
 	.word	4
 	.word	4
 	.word	Int_dispTab
 	.word	0
-	.word	-1
-int_const0:
-	.word	4
-	.word	4
-	.word	Int_dispTab
-	.word	1
 	.word	-1
 int_const6:
 	.word	4
@@ -123,7 +117,7 @@ int_const6:
 	.word	Int_dispTab
 	.word	13
 	.word	-1
-int_const4:
+int_const2:
 	.word	4
 	.word	4
 	.word	Int_dispTab
@@ -135,7 +129,7 @@ int_const7:
 	.word	Int_dispTab
 	.word	3
 	.word	-1
-int_const3:
+int_const1:
 	.word	4
 	.word	4
 	.word	Int_dispTab
@@ -147,11 +141,17 @@ int_const5:
 	.word	Int_dispTab
 	.word	6
 	.word	-1
-int_const2:
+int_const4:
 	.word	4
 	.word	4
 	.word	Int_dispTab
 	.word	7
+	.word	-1
+int_const0:
+	.word	4
+	.word	4
+	.word	Int_dispTab
+	.word	10
 	.word	-1
 bool_const0:
 	.word	3
@@ -258,7 +258,7 @@ String_protObj:
 	.word	5
 	.word	5
 	.word	String_dispTab
-	.word	int_const1
+	.word	int_const3
 	.word	0
 	.globl	heap_start
 heap_start:
@@ -362,20 +362,22 @@ Main.main:
 	la	$a0 int_const0
 	sw	$a0 0($sp)
 	addiu	$sp $sp -4
-	la	$a0 int_const0
-	lw	$s1 4($sp)
-	lw	$t2 12($a0)
-	lw	$t1 12($s1)
-	add	$t1 $t1 $t2
-	sw	$t1 12($a0)
-	addiu	$sp $sp 4
+	la	$a0 int_const1
 	sw	$a0 0($sp)
 	addiu	$sp $sp -4
-	la	$a0 int_const0
+	la	$a0 int_const2
+	jal	Object.copy
 	lw	$s1 4($sp)
 	lw	$t2 12($a0)
 	lw	$t1 12($s1)
-	add	$t1 $t1 $t2
+	div	$t1 $t1 $t2
+	sw	$t1 12($a0)
+	addiu	$sp $sp 4
+	jal	Object.copy
+	lw	$s1 4($sp)
+	lw	$t2 12($a0)
+	lw	$t1 12($s1)
+	sub	$t1 $t1 $t2
 	sw	$t1 12($a0)
 	addiu	$sp $sp 4
 	sw	$a0 0($sp)
