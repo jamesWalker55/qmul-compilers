@@ -301,14 +301,56 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(LEqNode node, String data) {
-        /* TODO */
-        return null;
+        int label = CgenEnv.getFreshLabel();
+        /* WIP */
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+        //push
+        Cgen.emitter.emitPush(CgenConstants.ACC);
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+        //pop
+        Cgen.emitter.emitPop();
+        //move $t2 $a0
+        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
+        // la	$a0 bool_const1
+        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
+        // beq $t1 $a0 label
+        Cgen.emitter.emitBleq(E1, E2, label);
+        // la	$a1 bool_const0
+        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+
+        Cgen.emitter.emitLabelDef(label);
+        return CgenConstants.ACC;
     }
 
     @Override
     public String visit(LTNode node, String data) {
-        /* TODO */
-        return null;
+        int label = CgenEnv.getFreshLabel();
+        /* WIP */
+        //cgen(e1)
+        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+        //push
+        Cgen.emitter.emitPush(CgenConstants.ACC);
+        //cgen(e2)
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
+        //pop
+        Cgen.emitter.emitPop();
+        //move $t2 $a0
+        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
+        // la	$a0 bool_const1
+        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
+        // beq $t1 $a0 label
+        Cgen.emitter.emitBlt(E1, E2, label);
+        // la	$a1 bool_const0
+        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+
+        Cgen.emitter.emitLabelDef(label);
+        return CgenConstants.ACC;
     }
 
     @Override
