@@ -181,33 +181,28 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         /* WIP */
         // cgen(e1=e2)
         int labelThen = CgenEnv.getFreshLabel();
-        int labelElse = CgenEnv.getFreshLabel();
+        //int labelElse = CgenEnv.getFreshLabel();
         int labelEndIf = CgenEnv.getFreshLabel();
         System.out.println(labelThen);
-        System.out.println(labelElse);
+        //System.out.println(labelElse);
         String E1E2 = node.getCond().accept(this, CgenConstants.ACC);
         
-        //if (node.getCond() instanceof BoolConstNode){
         Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        //}
+        //Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+        //Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
+        //beq $t2 $t1 true_branch
+        //Cgen.emitter.emitBeq(CgenConstants.T2, CgenConstants.T1, labelThen);
+        Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
 
-        //beq $a0 $t1 true_branch
-        Cgen.emitter.emitBeq(CgenConstants.ACC, CgenConstants.T1, labelThen);
-
-        // Else before then
-        //false branch
-        Cgen.emitter.emitLabelDef(labelElse);
         // cgen(e3)
-        String E4 = node.getElseExpr().accept(this, CgenConstants.ACC);
+        String E3 = node.getThenExpr().accept(this, CgenConstants.ACC);
         //b end_if
         //Cgen.emitter.emitDebugPrint("	b	end_if");
         Cgen.emitter.emitBranch(labelEndIf);
 
-        //true branch
         Cgen.emitter.emitLabelDef(labelThen);
-        // cgen(e3)
-        String E3 = node.getThenExpr().accept(this, CgenConstants.ACC);
+        // cgen(e4)
+        String E4 = node.getElseExpr().accept(this, CgenConstants.ACC);
         //Cgen.emitter.emitDebugPrint("end_if:");
         Cgen.emitter.emitLabelDef(labelEndIf);
         return CgenConstants.ACC;
@@ -370,19 +365,17 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         /* WIP */
         int label = CgenEnv.getFreshLabel();
         //cgen(e1)
-         // la	$a0 bool_const
-        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+        // la	$a0 bool_const
+        forceDest(node.getE1(), CgenConstants.ACC);
 
-        // lw	$t1 12($a0)
-        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.ACC);
+        // lw $t1 $a0
+        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
 
-        //	la	$a0 true
+        // 	la	$a0 true
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-
-        // if t1 = 0, jump
-        //	beqz	$t1 label
+        // beqz
         Cgen.emitter.emitBeqz(CgenConstants.T1, label);
-        //	la	$a0 false
+        // //	la	$a0 false
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
         //label:
         Cgen.emitter.emitLabelDef(label);

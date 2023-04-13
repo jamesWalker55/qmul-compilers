@@ -46,7 +46,7 @@ str_const5:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"Bool"
 	.byte	0	
 	.align	2
@@ -55,7 +55,7 @@ str_const6:
 	.word	4
 	.word	5
 	.word	String_dispTab
-	.word	int_const0
+	.word	int_const1
 	.ascii	"IO"
 	.byte	0	
 	.align	2
@@ -64,7 +64,7 @@ str_const1:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"True"
 	.byte	0	
 	.align	2
@@ -73,7 +73,7 @@ str_const4:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const5
+	.word	int_const4
 	.ascii	"Object"
 	.byte	0	
 	.align	2
@@ -82,7 +82,7 @@ str_const8:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const5
+	.word	int_const4
 	.ascii	"String"
 	.byte	0	
 	.align	2
@@ -91,7 +91,7 @@ str_const2:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const6
+	.word	int_const5
 	.ascii	"False"
 	.byte	0	
 	.align	2
@@ -100,7 +100,7 @@ str_const7:
 	.word	4
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"Main"
 	.byte	0	
 	.align	2
@@ -109,7 +109,7 @@ str_const3:
 	.word	4
 	.word	8
 	.word	String_dispTab
-	.word	int_const7
+	.word	int_const6
 	.ascii	"<basic class>"
 	.byte	0	
 	.align	2
@@ -118,7 +118,7 @@ str_const9:
 	.word	4
 	.word	5
 	.word	String_dispTab
-	.word	int_const1
+	.word	int_const7
 	.ascii	"Int"
 	.byte	0	
 	.align	2
@@ -129,37 +129,37 @@ int_const2:
 	.word	Int_dispTab
 	.word	0
 	.word	-1
-int_const7:
+int_const6:
 	.word	5
 	.word	4
 	.word	Int_dispTab
 	.word	13
 	.word	-1
-int_const0:
+int_const1:
 	.word	5
 	.word	4
 	.word	Int_dispTab
 	.word	2
 	.word	-1
-int_const1:
+int_const7:
 	.word	5
 	.word	4
 	.word	Int_dispTab
 	.word	3
 	.word	-1
-int_const4:
+int_const0:
 	.word	5
 	.word	4
 	.word	Int_dispTab
 	.word	4
-	.word	-1
-int_const6:
-	.word	5
-	.word	4
-	.word	Int_dispTab
-	.word	5
 	.word	-1
 int_const5:
+	.word	5
+	.word	4
+	.word	Int_dispTab
+	.word	5
+	.word	-1
+int_const4:
 	.word	5
 	.word	4
 	.word	Int_dispTab
@@ -385,13 +385,25 @@ Main.main:
 	addiu	$sp $sp 4
 	move	$t2 $a0
 	la	$a0 bool_const1
-	blt	$t1 $t2 label3
+	blt	$t1 $t2 label2
 	la	$a0 bool_const0
+label2:
+	lw	$t1 12($a0)
+	beqz	$t1 label0
+	la	$a0 str_const1
+	sw	$a0 0($sp)
+	addiu	$sp $sp -4
+	move	$a0 $s0
+	bne	$a0 $zero label3
+	la	$a0 str_const0
+	li	$t1 1
+	jal	_dispatch_abort
 label3:
-	move	$t1 $a0
-	la	$a0 bool_const1
-	beq	$a0 $t1 label0
-label1:
+	lw	$t1 8($a0)
+	lw	$t1 12($t1)
+	jalr	$t1
+	b	label1
+label0:
 	la	$a0 str_const2
 	sw	$a0 0($sp)
 	addiu	$sp $sp -4
@@ -404,21 +416,7 @@ label4:
 	lw	$t1 8($a0)
 	lw	$t1 12($t1)
 	jalr	$t1
-	b	label2
-label0:
-	la	$a0 str_const1
-	sw	$a0 0($sp)
-	addiu	$sp $sp -4
-	move	$a0 $s0
-	bne	$a0 $zero label5
-	la	$a0 str_const0
-	li	$t1 1
-	jal	_dispatch_abort
-label5:
-	lw	$t1 8($a0)
-	lw	$t1 12($t1)
-	jalr	$t1
-label2:
+label1:
 	lw	$fp 16($sp)
 	lw	$s0 12($sp)
 	lw	$ra 8($sp)

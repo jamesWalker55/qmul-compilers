@@ -46,7 +46,7 @@ str_const8:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"Bool"
 	.byte	0	
 	.align	2
@@ -55,7 +55,7 @@ str_const7:
 	.word	5
 	.word	5
 	.word	String_dispTab
-	.word	int_const1
+	.word	int_const4
 	.ascii	"Int"
 	.byte	0	
 	.align	2
@@ -64,7 +64,7 @@ str_const6:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"Main"
 	.byte	0	
 	.align	2
@@ -73,7 +73,7 @@ str_const5:
 	.word	5
 	.word	5
 	.word	String_dispTab
-	.word	int_const0
+	.word	int_const1
 	.ascii	"IO"
 	.byte	0	
 	.align	2
@@ -118,7 +118,7 @@ str_const0:
 	.word	5
 	.word	6
 	.word	String_dispTab
-	.word	int_const4
+	.word	int_const0
 	.ascii	"True"
 	.byte	0	
 	.align	2
@@ -145,7 +145,7 @@ int_const4:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	4
+	.word	3
 	.word	-1
 int_const3:
 	.word	3
@@ -163,13 +163,13 @@ int_const1:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	3
+	.word	2
 	.word	-1
 int_const0:
 	.word	3
 	.word	4
 	.word	Int_dispTab
-	.word	2
+	.word	4
 	.word	-1
 bool_const0:
 	.word	4
