@@ -6,6 +6,7 @@ import ast.NoExpressionNode;
 class CgenEmitConstructors extends CgenEmitVisitor {
     @Override
     Void visit(CgenNode v) {
+
         env = v.env;
         if (Flags.cgen_debug) System.err.println("Coding init method of class " + env.getClassname() +
                 " first attribute: " + env.getFirstAttributeOffset() +

@@ -234,7 +234,11 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     @Override
     public String visit(BlockNode node, String target) {
         /* TODO */
-        return null;
+        //for each expression:
+        for (ExpressionNode E : node.getExprs()) {
+            forceDest(E, CgenConstants.ACC);
+        }
+        return CgenConstants.ACC;
     }
 
     //Arithmetic Operations for Add, Subtract, Divide, Multiply
@@ -308,7 +312,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         // beq $t1 $t2 label
         Cgen.emitter.emitBeq(CgenConstants.T1, CgenConstants.T2, label);
         // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
         //jal	equality_test
         Cgen.emitter.emitEqualityTest();
 
@@ -336,8 +340,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         // bleq $t1 $t2 label
         Cgen.emitter.emitBleq(CgenConstants.T1, CgenConstants.T2, label);
-        // la	$a0 false
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        // la	$a1 false
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -363,8 +367,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         // blt $t1 $t2 label
         Cgen.emitter.emitBlt(CgenConstants.T1, CgenConstants.T2, label);
-        // la	$a0 false
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        // la	$a1 false
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -438,7 +442,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     public String visit(ObjectNode node, String target) {
         //if returns null, emit void (unsure if this is 100% correct)
         String result = env.vars.lookup(node.getName()).emitRef(target);
-        //System.out.println(result);
+
         if (result == null)
         {
             Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.SELF);

@@ -1,6 +1,8 @@
 class Main inherits IO{
-    x : Object;
     main(): Object {
-        if isvoid 1 then out_string("true") else out_string("false") fi
+        {
+            if true then out_string("true") else out_string("false") fi;
+            if false then out_string("true") else out_string("false") fi;
+        }
     };
 };
