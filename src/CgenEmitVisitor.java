@@ -182,28 +182,34 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         // cgen(e1=e2)
         int labelThen = CgenEnv.getFreshLabel();
         int labelElse = CgenEnv.getFreshLabel();
+        int labelEndIf = CgenEnv.getFreshLabel();
+        System.out.println(labelThen);
+        System.out.println(labelElse);
         String E1E2 = node.getCond().accept(this, CgenConstants.ACC);
-        if (node.getCond() instanceof BoolConstNode){
-            Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
-            Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
-        }
-        else{
-            //	lw	$t1 12($a0)
-            Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
-
-            //beqz	$t1 label0
-            Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
-        }
-
-        // cgen(e4)
-        String E4 = node.getThenExpr().accept(this, CgenConstants.ACC);
-        Cgen.emitter.emitBranch(labelElse);
-        Cgen.emitter.emitLabelDef(labelThen);
         
-        // cgen(e3)
-        String E3 = node.getElseExpr().accept(this, CgenConstants.ACC);
-        Cgen.emitter.emitLabelDef(labelElse);
+        //if (node.getCond() instanceof BoolConstNode){
+        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+        //}
 
+        //beq $a0 $t1 true_branch
+        Cgen.emitter.emitBeq(CgenConstants.ACC, CgenConstants.T1, labelThen);
+
+        // Else before then
+        //false branch
+        Cgen.emitter.emitLabelDef(labelElse);
+        // cgen(e3)
+        String E4 = node.getElseExpr().accept(this, CgenConstants.ACC);
+        //b end_if
+        //Cgen.emitter.emitDebugPrint("	b	end_if");
+        Cgen.emitter.emitBranch(labelEndIf);
+
+        //true branch
+        Cgen.emitter.emitLabelDef(labelThen);
+        // cgen(e3)
+        String E3 = node.getThenExpr().accept(this, CgenConstants.ACC);
+        //Cgen.emitter.emitDebugPrint("end_if:");
+        Cgen.emitter.emitLabelDef(labelEndIf);
         return CgenConstants.ACC;
     }
 
@@ -275,23 +281,23 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         int label = CgenEnv.getFreshLabel();
         /* WIP */
         //cgen(e1)
-        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+        String E1 = node.getE1().accept(this, CgenConstants.regNames[0]);
         //push
-        Cgen.emitter.emitPush(CgenConstants.ACC);
+        //Cgen.emitter.emitPush(CgenConstants.regNames[0]);
         //cgen(e2)
-        String E2 = node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
+        String E2 = node.getE2().accept(this, CgenConstants.T2);
+
+        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.regNames[0]);
+        //$s1 := top
+        //Cgen.emitter.emitTop(CgenConstants.ACC);
         //pop
-        Cgen.emitter.emitPop();
-        //move $t2 $a0
-        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        // la	$a0 bool_const1
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
-        // beq $t1 $a0 label
-        Cgen.emitter.emitBeq(E1, E2, label);
-        // la	$a1 bool_const0
-        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+        //Cgen.emitter.emitPop();
+        // la	$a0 true
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+        // beq $t1 $t2 label
+        Cgen.emitter.emitBeq(CgenConstants.T1, CgenConstants.T2, label);
+        // la	$a1 false
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
         // jal	equality_test
         Cgen.emitter.emitJal(CgenConstants.EQUALITY_TEST);
 
@@ -315,12 +321,12 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitPop();
         //move $t2 $a0
         Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        // la	$a0 bool_const1
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
+        // la	$a0 true
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         // beq $t1 $a0 label
         Cgen.emitter.emitBleq(E1, E2, label);
-        // la	$a1 bool_const0
-        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+        // la	$a1 false
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -342,12 +348,12 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitPop();
         //move $t2 $a0
         Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        // la	$a0 bool_const1
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, CgenConstants.TRUE);
+        // la	$a0 true
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         // beq $t1 $a0 label
         Cgen.emitter.emitBlt(E1, E2, label);
-        // la	$a1 bool_const0
-        Cgen.emitter.emitLoadAddress(CgenConstants.A1, CgenConstants.FALSE);
+        // la	$a1 false
+        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -361,8 +367,26 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(CompNode node, String target) {
-        /* TODO */
-        return null;
+        /* WIP */
+        int label = CgenEnv.getFreshLabel();
+        //cgen(e1)
+         // la	$a0 bool_const
+        String E1 = node.getE1().accept(this, CgenConstants.ACC);
+
+        // lw	$t1 12($a0)
+        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.ACC);
+
+        //	la	$a0 true
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+
+        // if t1 = 0, jump
+        //	beqz	$t1 label
+        Cgen.emitter.emitBeqz(CgenConstants.T1, label);
+        //	la	$a0 false
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        //label:
+        Cgen.emitter.emitLabelDef(label);
+        return CgenConstants.ACC;
     }
 
     @Override
