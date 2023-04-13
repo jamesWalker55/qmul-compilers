@@ -1,5 +1,6 @@
 class Main inherits IO{
+    x : Object;
     main(): Object {
-        while true loop out_string("test") pool
+        if isvoid 1 then out_string("true") else out_string("false") fi
     };
 };

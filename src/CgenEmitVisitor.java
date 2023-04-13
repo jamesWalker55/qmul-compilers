@@ -419,13 +419,31 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(IsVoidNode node, String target) {
-        /* TODO */
-        return null;
+        int label = CgenEnv.getFreshLabel();
+        /* WIP */
+        forceDest(node.getE1(), CgenConstants.ACC);
+        // move	$t1 $a0
+        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.ACC);
+        // 	la	$a0 true
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+        // beqz
+        Cgen.emitter.emitBeqz(CgenConstants.T1, label);
+        // //	la	$a0 false
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        Cgen.emitter.emitLabelDef(label);
+        return CgenConstants.ACC;
     }
 
     @Override
     public String visit(ObjectNode node, String target) {
-        return env.vars.lookup(node.getName()).emitRef(target);
+        //if returns null, emit void (unsure if this is 100% correct)
+        String result = env.vars.lookup(node.getName()).emitRef(target);
+        //System.out.println(result);
+        if (result == null)
+        {
+            Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.SELF);
+        }
+        return CgenConstants.ACC;
     }
 
     @Override
