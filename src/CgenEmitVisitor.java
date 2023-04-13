@@ -281,25 +281,25 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         int label = CgenEnv.getFreshLabel();
         /* WIP */
         //cgen(e1)
-        String E1 = node.getE1().accept(this, CgenConstants.regNames[0]);
+        String E1 = node.getE1().accept(this, CgenConstants.ACC);
         //push
-        //Cgen.emitter.emitPush(CgenConstants.regNames[0]);
+        Cgen.emitter.emitPush(CgenConstants.ACC);
         //cgen(e2)
-        String E2 = node.getE2().accept(this, CgenConstants.T2);
-
-        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.regNames[0]);
-        //$s1 := top
-        //Cgen.emitter.emitTop(CgenConstants.ACC);
+        String E2 = node.getE2().accept(this, CgenConstants.ACC);
+        //$t1 := top
+        Cgen.emitter.emitTop(CgenConstants.T1);
         //pop
-        //Cgen.emitter.emitPop();
+        Cgen.emitter.emitPop();
+        //move $t2 $a0
+        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
         // la	$a0 true
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         // beq $t1 $t2 label
         Cgen.emitter.emitBeq(CgenConstants.T1, CgenConstants.T2, label);
         // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
-        // jal	equality_test
-        Cgen.emitter.emitJal(CgenConstants.EQUALITY_TEST);
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        //jal	equality_test
+        Cgen.emitter.emitEqualityTest();
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -323,10 +323,10 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
         // la	$a0 true
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        // beq $t1 $a0 label
-        Cgen.emitter.emitBleq(E1, E2, label);
-        // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
+        // bleq $t1 $t2 label
+        Cgen.emitter.emitBleq(CgenConstants.T1, CgenConstants.T2, label);
+        // la	$a0 false
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
@@ -350,10 +350,10 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
         // la	$a0 true
         Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        // beq $t1 $a0 label
-        Cgen.emitter.emitBlt(E1, E2, label);
-        // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
+        // blt $t1 $t2 label
+        Cgen.emitter.emitBlt(CgenConstants.T1, CgenConstants.T2, label);
+        // la	$a0 false
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
 
         Cgen.emitter.emitLabelDef(label);
         return CgenConstants.ACC;
