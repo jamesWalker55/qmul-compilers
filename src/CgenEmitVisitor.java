@@ -211,7 +211,23 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     @Override
     public String visit(LoopNode node, String target) {
         int loop_label = CgenEnv.getFreshLabel();
-        /* TODO */
+        int end_label = CgenEnv.getFreshLabel();
+        /* WIP */
+        Cgen.emitter.emitLabelDef(loop_label); //start lavel
+        //cgen(e1)
+        forceDest(node.getCond(), CgenConstants.ACC);
+        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.ACC);
+        //beq	$t1 $zero label1
+        Cgen.emitter.emitBeq(CgenConstants.T1, CgenConstants.ZERO, loop_label);
+
+        //cgen(e2)
+        forceDest(node.getBody(), CgenConstants.ACC);
+
+        //b	label0
+        Cgen.emitter.emitBranch(loop_label);
+        Cgen.emitter.emitLabelDef(end_label);
+        //move	$a0 $zero
+        Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.ZERO);
         return CgenConstants.ACC;
     }
 
