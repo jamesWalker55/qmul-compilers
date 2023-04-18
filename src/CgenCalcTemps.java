@@ -44,7 +44,15 @@ public class CgenCalcTemps extends BaseVisitor<Void, Void> {
     @Override
     public Void visit(BinopNode node, Void data) {
         /* WIP */
+        // no idea if this is correct but it probably isnt
+        //add 2 temporaries for every operation
         inc();
+        node.getE1().accept(this, data);
+        dec();
+
+        inc();
+        node.getE2().accept(this, data);
+        dec();
         return null;
     }
 
@@ -62,6 +70,12 @@ public class CgenCalcTemps extends BaseVisitor<Void, Void> {
     @Override
     public Void visit(BranchNode node, Void data) {
         /* TODO */
+        // no idea if this is correct but it probably isnt
+        ExpressionNode expr = node.getExpr();
+        if (!(expr instanceof NoExpressionNode))
+            inc();
+            expr.accept(this, null);
+            dec();
         return null;
     }
 

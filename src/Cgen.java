@@ -115,12 +115,14 @@ public class Cgen  {
         @Override
         public String emitRef(String optionalDest) {
             /* TODO */
+            //Cgen.emitter.emitDebugPrint("emitRef Here");
             return null;
         }
 
         @Override
         public void emitUpdate(String source) {
             /* TODO */
+            //Cgen.emitter.emitDebugPrint("emitUpdate Here");
         }
     }
 
