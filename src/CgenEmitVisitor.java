@@ -68,6 +68,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
             classname = env.getClassname();
         CgenNode c = Cgen.classTable.get(classname);
         Cgen.MethodInfo minfo = c.env.methods.lookup(node.getName());
+        //load expression then push onto stack
         for (ExpressionNode e : node.getActuals()) {
             String r_actual = e.accept(this, CgenConstants.ACC);
             Cgen.emitter.emitPush(r_actual);
@@ -202,25 +203,34 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(NewNode node, String target) {
+        //CgenNode c = Cgen.classTable.get(env.getClassname());
         /* TODO */
         Symbol name = node.getType_name();
-        //Cgen.emitter.emitDebugPrint("HERE"+node.getType_name()+node.getType());
         // la	$a0 IO_protObj
         Cgen.emitter.emitLoadAddress(CgenConstants.ACC, node.getType_name()+CgenConstants.PROTOBJ_SUFFIX);
-        // push
-        //Cgen.emitter.emitPushAcc();
         // jal	Object.copy
         Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
         // jal	IO_init
         Cgen.emitter.emitJal(node.getType_name()+CgenConstants.CLASSINIT_SUFFIX);
-        // top
-        //Cgen.emitter.emitTop(CgenConstants.regNames[0]);
-        //	move	$s1 $a0
-        Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
-        //	move	$a0 $s1
-        Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
-        return CgenConstants.regNames[0];
+
+        //Cgen.emitter.emitDebugPrint(node.getType_name().getName()+node.getType());
+        //Cgen.emitter.emitDebugPrint(env.getClassname());
+        if (name != TreeConstants.SELF_TYPE){
+            //Cgen.emitter.emitDebugPrint(name);
+            //Cgen.emitter.emitDebugPrint("test");
+            // sw	$a0 12($s0)
+            Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
+            return CgenConstants.ACC;
+        }
+        else{
+            //	move	$s1 $a0
+            Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
+            //	move	$a0 $s1
+            Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
+            return CgenConstants.regNames[0];
+        }
     }
+    
 
     @Override
     public String visit(CondNode node, String target) {
@@ -424,6 +434,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     @Override
     public String visit(NegNode node, String target) {
         /* TODO */
+        Cgen.emitter.emitDebugPrint("negnode test");
         return null;
     }
 
