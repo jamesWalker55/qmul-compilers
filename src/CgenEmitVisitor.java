@@ -61,10 +61,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     @Override
     public String visit(StaticDispatchNode node, String _unused) {
         /* TODO */
-        //int label = env.getFreshLabel();
-        //Cgen.emitter.emitLabelDef(label);
-        //Cgen.emitter.emitDebugPrint("static dispatch");
-        Symbol classname = node.getExpr().getType();
+        // use the declared type T instead of the actual expr type
+        Symbol classname = node.getType_name();
         if (classname == TreeConstants.SELF_TYPE)
             classname = env.getClassname();
         CgenNode c = Cgen.classTable.get(classname);
@@ -74,11 +72,9 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
             e.accept(this, CgenConstants.ACC);
             Cgen.emitter.emitPush(CgenConstants.ACC);
         }
-        //Cgen.emitter.emitDebugPrint("test1");
-        //forceDest(node.getExpr(), CgenConstants.ACC);
-        //Cgen.emitter.emitDebugPrint("test2");
-        if (Flags.cgen_debug)
-            System.err.println("    Dispatch to " + node.getName());
+
+        forceDest(node.getExpr(), CgenConstants.ACC);
+
         int lab = CgenEnv.getFreshLabel();
         Cgen.emitter.emitBne(CgenConstants.ACC, CgenConstants.ZERO, lab); // test for void
         Cgen.emitter.emitLoadString(CgenConstants.ACC, env.getFilename());
@@ -91,8 +87,6 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         //Cgen.emitter.emitDebugPrint("test4");
         Cgen.emitter.emitLoad(CgenConstants.T1, minfo.getOffset(), CgenConstants.T1);
         Cgen.emitter.emitJalr(CgenConstants.T1);
-        //	lw	$s1 0($fp)
-        Cgen.emitter.emitLoad(CgenConstants.regNames[0], 0, CgenConstants.FP);
         return CgenConstants.ACC;
     }
 
