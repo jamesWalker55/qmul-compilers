@@ -232,33 +232,31 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     @Override
     public String visit(CondNode node, String _unused) {
-        /* WIP */
-        // cgen(e1=e2)
-        int labelThen = CgenEnv.getFreshLabel();
-        //int labelElse = CgenEnv.getFreshLabel();
+        int labelElse = CgenEnv.getFreshLabel();
         int labelEndIf = CgenEnv.getFreshLabel();
-        System.out.println(labelThen);
-        //System.out.println(labelElse);
+
+        // evaluate the condition
         node.getCond().accept(this, CgenConstants.ACC);
 
+        // load the value (offset 12) of the boolean into t1
         Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
-        //Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        //Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        //beq $t2 $t1 true_branch
-        //Cgen.emitter.emitBeq(CgenConstants.T2, CgenConstants.T1, labelThen);
-        Cgen.emitter.emitBeqz(CgenConstants.T1, labelThen);
+        // jump to ELSE branch if false
+        Cgen.emitter.emitBeqz(CgenConstants.T1, labelElse);
 
-        // cgen(e3)
+        // we didn't jump to the ELSE branch
+        // evaluate the THEN branch
         node.getThenExpr().accept(this, CgenConstants.ACC);
-        //b end_if
-        //Cgen.emitter.emitDebugPrint("	b	end_if");
+        // jump to ENDIF
         Cgen.emitter.emitBranch(labelEndIf);
 
-        Cgen.emitter.emitLabelDef(labelThen);
-        // cgen(e4)
+        // we jumped here from Beqz
+        // do the ELSE branch
+        Cgen.emitter.emitLabelDef(labelElse);
         node.getElseExpr().accept(this, CgenConstants.ACC);
-        //Cgen.emitter.emitDebugPrint("end_if:");
+
+        // ENDIF label here
         Cgen.emitter.emitLabelDef(labelEndIf);
+
         return CgenConstants.ACC;
     }
 
