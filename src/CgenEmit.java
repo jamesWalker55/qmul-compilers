@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-public class CgenEmit  {
+public class CgenEmit {
 
     private int stringclasstag;
     private int intclasstag;
@@ -50,7 +50,6 @@ public class CgenEmit  {
         }
         return output;
     }
-
 
     // The following methods emit code for constants and global
     // declarations.
@@ -148,7 +147,7 @@ public class CgenEmit  {
         //         }
         //     }
         // }
-            
+
         // Generates code definitions for all int constants in the int table.
         for (Symbol sym : StringTable.inttable.values())
             codeDefInt(sym);
@@ -158,7 +157,6 @@ public class CgenEmit  {
         codeDef(true);
 
     }
-
 
     /**
      * Emits code to start the .text segment and to
@@ -186,13 +184,11 @@ public class CgenEmit  {
         s.println("");
     }
 
-
     //
     //  The class name table is a mapping from
     //  class tags -> class names.
     //
-    protected void codeClassTable()
-    {
+    protected void codeClassTable() {
         s.print(CgenConstants.CLASSNAMETAB);
         s.print(CgenConstants.LABEL);
         for (Symbol c : CgenEnv.classTags) {
@@ -205,8 +201,7 @@ public class CgenEmit  {
 
     // The class object table is a mapping from
     // class tag -> address of prototype object for the class
-    protected void codeProtObjectTable()
-    {
+    protected void codeProtObjectTable() {
         s.print(CgenConstants.CLASSOBJTAB);
         s.print(CgenConstants.LABEL);
         for (Symbol c : CgenEnv.classTags) {
@@ -245,8 +240,7 @@ public class CgenEmit  {
         emitDispTableRef(env.getClassname());
         s.println();
 
-        for(int i = 0; i < total_attributes; i++)
-        {
+        for (int i = 0; i < total_attributes; i++) {
             s.print(CgenConstants.WORD);
 
             Symbol type_decl = env.attributeOffsets.lookup(i).getNode().getType_decl();
@@ -265,15 +259,15 @@ public class CgenEmit  {
     }
 
     //printing info for dispatch table
-    protected void codeDispatchTable(CgenEnv env){
+    protected void codeDispatchTable(CgenEnv env) {
         Symbol classname = env.getClassname();
 
-        s.print(classname+CgenConstants.DISPTAB_SUFFIX);
+        s.print(classname + CgenConstants.DISPTAB_SUFFIX);
         s.println(CgenConstants.LABEL);
 
         for (int i = 0; i < env.getNumMethods(); i++) {
             s.print(CgenConstants.WORD);
-            s.print(env.methodOffsets.lookup(i).classname.getName()+"."+env.methodOffsets.lookup(i).methodname);
+            s.print(env.methodOffsets.lookup(i).classname.getName() + "." + env.methodOffsets.lookup(i).methodname);
             s.println();
         }
     }
@@ -284,10 +278,9 @@ public class CgenEmit  {
 
     //custom print so we can print something into the MIPS file and see where we are
     //Cgen.emitter.emitDebugPrint("WE ARE HERE");
-    protected void emitDebugPrint(Object text){
-        s.println(text);        //comment this out to get rid of all debug prints
+    protected void emitDebugPrint(Object text) {
+        s.println(text); //comment this out to get rid of all debug prints
     }
-
 
     /**
      * Emits an LW instruction.
@@ -306,10 +299,12 @@ public class CgenEmit  {
         s.print(")");
         s.println();
     }
+
     protected void emitLoadVal(String value_dest, String address_dest) {
         emitLoad(value_dest, 3, address_dest);
         //emitMove(value_dest, address_dest);
     }
+
     protected void emitLoadVal(String register) {
         emitLoadVal(register, register);
     }
@@ -321,16 +316,17 @@ public class CgenEmit  {
      * @param offset     the word offset from source register
      * @param source_reg the source register
      */
-    protected void emitStore(String source_reg, int offset, String dest_reg
-    ) {
+    protected void emitStore(String source_reg, int offset, String dest_reg) {
         s.println(CgenConstants.SW + source_reg + " "
                 + offset * CgenConstants.WORD_SIZE
                 + "(" + dest_reg + ")");
     }
-    protected void emitStoreVal(String val_reg, String address_reg){
+
+    protected void emitStoreVal(String val_reg, String address_reg) {
         emitStore(val_reg, 3, address_reg);
     }
-    protected void emitStoreVal(String register){
+
+    protected void emitStoreVal(String register) {
         emitStoreVal(register, register);
     }
 
@@ -347,7 +343,6 @@ public class CgenEmit  {
         s.print(val);
         s.println();
     }
-
 
     /**
      * Emits an LA instruction.
@@ -417,15 +412,12 @@ public class CgenEmit  {
      * @param source_reg the source register
      */
     protected void emitMove(String dest_reg, String source_reg) {
-        if (CgenConstants.regEq(dest_reg, source_reg))
-        {
-            if (Flags.cgen_debug)
-            {
+        if (CgenConstants.regEq(dest_reg, source_reg)) {
+            if (Flags.cgen_debug) {
                 System.err.println("    Omitting move from "
                         + source_reg + " to " + dest_reg);
                 s.print("#");
-            }
-            else
+            } else
                 return;
         }
         s.println(CgenConstants.MOVE + dest_reg + " " + source_reg);
@@ -471,8 +463,7 @@ public class CgenEmit  {
      * @param src1     the source register 1
      * @param src2     the source register 2
      */
-    protected void emitAddu(String dest_reg, String src1, String src2
-    ) {
+    protected void emitAddu(String dest_reg, String src1, String src2) {
         s.println(CgenConstants.ADDU + dest_reg + " " + src1 + " " + src2);
     }
 
@@ -483,8 +474,7 @@ public class CgenEmit  {
      * @param src      the source register
      * @param imm      the immediate
      */
-    protected void emitAddiu(String dest_reg, String src, int imm
-    ) {
+    protected void emitAddiu(String dest_reg, String src, int imm) {
         s.println(CgenConstants.ADDIU + dest_reg + " " + src + " " + imm);
     }
 
@@ -495,8 +485,7 @@ public class CgenEmit  {
      * @param src1     the source register 1
      * @param src2     the source register 2
      */
-    protected void emitDiv(String dest_reg, String src1, String src2
-    ) {
+    protected void emitDiv(String dest_reg, String src1, String src2) {
         s.println(CgenConstants.DIV + dest_reg + " " + src1 + " " + src2);
     }
 
@@ -710,23 +699,27 @@ public class CgenEmit  {
         emitStore(reg, 0, CgenConstants.SP);
         emitAddiu(CgenConstants.SP, CgenConstants.SP, -4);
     }
-    protected void emitPushAcc(){
+
+    protected void emitPushAcc() {
         emitPush(CgenConstants.ACC);
     }
-    protected void emitTop(String reg){ //peek at the top of the stack
+
+    protected void emitTop(String reg) { //peek at the top of the stack
         emitLoad(reg, 1, CgenConstants.SP);
     }
-    protected void emitPop(String reg){
+
+    protected void emitPop(String reg) {
         emitTop(reg);
         emitAddiu(CgenConstants.SP, CgenConstants.SP, 4);
     }
-    protected void emitPop(){
+
+    protected void emitPop() {
         emitAddiu(CgenConstants.SP, CgenConstants.SP, 4);
     }
-    protected void emitIntConstant(int  i){
+
+    protected void emitIntConstant(int i) {
         emitLoadImm(CgenConstants.ACC, i);
     }
-
 
     /**
      * Emits code to fetch the integer value of the Integer object.
@@ -782,7 +775,7 @@ public class CgenEmit  {
      * @param methodname the name of the method
      */
     protected void emitMethodRef(Symbol classname,
-                       Symbol methodname) {
+            Symbol methodname) {
         s.print(classname + CgenConstants.METHOD_SEP + methodname);
     }
 
@@ -828,10 +821,10 @@ public class CgenEmit  {
      *
      */
     protected void emitGCCheck(String source) {
-        if (source != CgenConstants.A1) emitMove(CgenConstants.A1, source);
+        if (source != CgenConstants.A1)
+            emitMove(CgenConstants.A1, source);
         s.println(CgenConstants.JAL + "_gc_check");
     }
-
 
     private boolean ascii = false;
 
@@ -897,7 +890,6 @@ public class CgenEmit  {
         s.println("\t.byte\t0\t");
     }
 
-
     /**
      * Emits a reference to this boolean constant.
      */
@@ -921,11 +913,10 @@ public class CgenEmit  {
         s.print(CgenConstants.WORD);
         /* Add code to reference the dispatch table for class Bool here */
         emitDispTableRef(TreeConstants.Bool);
-        s.println();        // dispatch table
+        s.println(); // dispatch table
         s.print(CgenConstants.WORD);
         s.println(val ? "1" : "0"); // value (0 or 1)
     }
-
 
     /**
      * Emits a reference to this string constant.
@@ -935,13 +926,11 @@ public class CgenEmit  {
         s.print(sym.getIndex());
     }
 
-
     /**
      * Generates code for the string constant definition.  This method
      * is incomplete; you get to finish it up in programming assignment
      * 5.
      */
-
 
     protected void codeDefString(Symbol sym) {
         int l = sym.getName().length();
@@ -956,9 +945,9 @@ public class CgenEmit  {
                 CgenConstants.STRING_SLOTS +
                 (sym.getName().length() + 4) / 4)); // object size
         s.print(CgenConstants.WORD);
-    	/* Add code to reference the dispatch table for class String here */
+        /* Add code to reference the dispatch table for class String here */
         emitDispTableRef(TreeConstants.Str);
-        s.println();  // dispatch table
+        s.println(); // dispatch table
         s.print(CgenConstants.WORD);
         codeRefInt(lensym);
         s.println(); // length
@@ -966,7 +955,6 @@ public class CgenEmit  {
         System.out.println(sym.getName());
         s.print(CgenConstants.ALIGN); // align to word
     }
-
 
     /**
      * Generates code for the integer constant definition.  This method
@@ -984,7 +972,7 @@ public class CgenEmit  {
         s.print(CgenConstants.WORD);
         /* Add code to reference the dispatch table for class Int here */
         emitDispTableRef(TreeConstants.Int);
-        s.println();        // dispatch table
+        s.println(); // dispatch table
         s.println(CgenConstants.WORD + sym.getName()); // integer value
     }
 
@@ -1003,22 +991,20 @@ public class CgenEmit  {
         s.print(CgenConstants.WORD);
     }
 
-
-    protected void prologue(int temps)
-    {
+    protected void prologue(int temps) {
         int reg_temps = CgenConstants.getRegisterTemps(temps);
         int stack_temps = CgenConstants.getStackTemps(temps);
-        assert ( (reg_temps + stack_temps) == temps);
+        assert ((reg_temps + stack_temps) == temps);
 
-        emitAddiu(CgenConstants.SP, CgenConstants.SP,-(3 + temps) * CgenConstants.WORD_SIZE);   // allocate frame
-        emitStore(CgenConstants.FP, 3 + temps, CgenConstants.SP);               // save caller's FP
-        emitStore(CgenConstants.SELF, 2 + temps, CgenConstants.SP);             //  "    "       SELF
-        emitStore(CgenConstants.RA, 1 + temps, CgenConstants.SP);               //  "    "       RA
-        emitAddiu(CgenConstants.FP, CgenConstants.SP, 4);                           // set new FP
-        emitMove(CgenConstants.SELF, CgenConstants.ACC);                            // set SELF register
+        emitAddiu(CgenConstants.SP, CgenConstants.SP, -(3 + temps) * CgenConstants.WORD_SIZE); // allocate frame
+        emitStore(CgenConstants.FP, 3 + temps, CgenConstants.SP); // save caller's FP
+        emitStore(CgenConstants.SELF, 2 + temps, CgenConstants.SP); //  "    "       SELF
+        emitStore(CgenConstants.RA, 1 + temps, CgenConstants.SP); //  "    "       RA
+        emitAddiu(CgenConstants.FP, CgenConstants.SP, 4); // set new FP
+        emitMove(CgenConstants.SELF, CgenConstants.ACC); // set SELF register
 
         //Save callee-save registers
-        for(int i = 0; i < reg_temps; i++) {
+        for (int i = 0; i < reg_temps; i++) {
             //The first slot for saving registers is at FP + num_temps - 1.
             //So the ith register is at FP + num_temps - i - 1
             emitStore(CgenConstants.regNames[i], temps - i - 1, CgenConstants.FP);// save caller's $si
@@ -1033,20 +1019,19 @@ public class CgenEmit  {
             emitGCCheck(CgenConstants.SELF);
     }
 
-    protected void epilogue(int temps, int num_formals)
-    {
+    protected void epilogue(int temps, int num_formals) {
         if (Flags.cgen_Memmgr_Debug == Flags.GC_DEBUG)
             emitGCCheck(CgenConstants.ACC);
 
         //Restore callee-save registers
         int reg_temps = CgenConstants.getRegisterTemps(temps);
-        for(int i = 0; i < reg_temps; i++) {
+        for (int i = 0; i < reg_temps; i++) {
             emitLoad(CgenConstants.regNames[i], temps - i - 1, CgenConstants.FP); // restore caller's $si
         }
 
-        emitLoad(CgenConstants.FP, 3  + temps, CgenConstants.SP);               // restore caller's FP
-        emitLoad(CgenConstants.SELF, 2 + temps, CgenConstants.SP);              // restore caller's SELF
-        emitLoad(CgenConstants.RA, 1 + temps, CgenConstants.SP);                // restore caller's RA
+        emitLoad(CgenConstants.FP, 3 + temps, CgenConstants.SP); // restore caller's FP
+        emitLoad(CgenConstants.SELF, 2 + temps, CgenConstants.SP); // restore caller's SELF
+        emitLoad(CgenConstants.RA, 1 + temps, CgenConstants.SP); // restore caller's RA
         // deallocate frame
         emitAddiu(CgenConstants.SP, CgenConstants.SP, (3 + temps + num_formals) * CgenConstants.WORD_SIZE);
         emitReturn();
