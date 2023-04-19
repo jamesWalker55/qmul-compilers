@@ -13,6 +13,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     //  Return value: the name of the register holding the result.
     //  Possibly the same as target.
 
+    // Default implementation
     @Override
     public String visit(AssignNode node, String _unused) {
         Cgen.VarInfo lhs = env.vars.lookup(node.getName());
@@ -32,6 +33,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     //// Static dispatch has the same steps as normal dispatch, except
     //// the dispatch table is taken from the user-specified class.
 
+    // Default implementation
     @Override
     public String visit(DispatchNode node, String _unused) {
         Symbol classname = node.getExpr().getType();
@@ -95,6 +97,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     // in depth-first order with the root being assigned 0, tests for higher-numbered
     // classes should be emitted before lower-numbered classes.
 
+    // Default implementation
     @Override
     public String visit(CaseNode node, String _unused) {
         int out_label = CgenEnv.getFreshLabel();
@@ -138,6 +141,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         return CgenConstants.ACC;
     }
 
+    // Default implementation
     @Override
     public String visit(LetNode node, String _unused) {
         // r_newvar is the register to which we think the new variable will be
@@ -445,6 +449,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         return CgenConstants.ACC;
     }
 
+    // Default implementation
     @Override
     public String visit(IntConstNode node, String _unused) {
         Cgen.emitter.emitLoadInt(CgenConstants.ACC, node.getVal());
@@ -480,6 +485,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         return CgenConstants.ACC;
     }
 
+    // Default implementation
     @Override
     public String visit(ObjectNode node, String _unused) {
         //if returns null, emit void (unsure if this is 100% correct)
@@ -500,6 +506,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     // forceDest is a wrapper for the code functions that guarantees the
     // result will go in "target".  Since the destination register is always
     // the target, there's no need for a return value.
+
+    // Default implementation
     private void forceDest(ExpressionNode e, String target) {
         String r = e.accept(this, target);
         Cgen.emitter.emitMove(target, r); //omitted if target = r.
@@ -515,6 +523,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     //   3) puts the result of e1 in that new var.
     //
     // The caller of storeOperand function should deallocate the new variable.
+
+    // Default implementation
     private void storeOperand(Symbol temp_var, ExpressionNode e1) {
         //where will temp_var be allocated?
         int offset = env.getNextTempOffset();
