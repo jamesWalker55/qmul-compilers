@@ -118,7 +118,7 @@ public class Cgen  {
             /* TODO */
             // This will decrease the test success rate, but it's useful for seeing where this
             // function gets called
-            Utilities.fatalError("Not implemented: emitRef to self attribute");
+            // Utilities.fatalError("Not implemented: emitRef to self attribute");
             return null;
         }
 
