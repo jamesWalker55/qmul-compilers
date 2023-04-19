@@ -197,29 +197,36 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     @Override
     public String visit(NewNode node, String _unused) {
-        //CgenNode c = Cgen.classTable.get(env.getClassname());
         /* TODO */
         Symbol name = node.getType_name();
+        if (name == TreeConstants.SELF_TYPE) {
+            name = env.getClassname();
+        }
         // la	$a0 IO_protObj
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, node.getType_name() + CgenConstants.PROTOBJ_SUFFIX);
+        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, name + CgenConstants.PROTOBJ_SUFFIX);
+
+        // Object.copy copies the object currently at $a0
+        // the new object will be replaced at $a0
+        // see T10-runtime-v0.pdf
+
         // jal	Object.copy
         Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
         // jal	IO_init
-        Cgen.emitter.emitJal(node.getType_name() + CgenConstants.CLASSINIT_SUFFIX);
+        Cgen.emitter.emitJal(name + CgenConstants.CLASSINIT_SUFFIX);
 
-        //Cgen.emitter.emitDebugPrint(node.getType_name().getName()+node.getType());
-        //Cgen.emitter.emitDebugPrint(env.getClassname());
-        if (name != TreeConstants.SELF_TYPE) {
-            //Cgen.emitter.emitDebugPrint(name);
-            //Cgen.emitter.emitDebugPrint("test");
-            // sw	$a0 12($s0)
-            Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
-        } else {
-            //	move	$s1 $a0
-            Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
-            //	move	$a0 $s1
-            Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
-        }
+        // the new object is now at $a0, no further work is needed
+
+        // if (name != TreeConstants.SELF_TYPE) {
+        //     //Cgen.emitter.emitDebugPrint(name);
+        //     //Cgen.emitter.emitDebugPrint("test");
+        //     // sw	$a0 12($s0)
+        //     Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
+        // } else {
+        //     //	move	$s1 $a0
+        //     Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
+        //     //	move	$a0 $s1
+        //     Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
+        // }
         return CgenConstants.ACC;
     }
 
