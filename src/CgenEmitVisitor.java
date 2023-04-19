@@ -2,7 +2,7 @@ import ast.*;
 
 import java.util.List;
 
-public class CgenEmitVisitor extends CgenVisitor<String, String>{
+public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     /* Emit code for expressions */
     CgenEnv env;
@@ -44,9 +44,10 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
             Cgen.emitter.emitPush(r_actual);
         }
         forceDest(node.getExpr(), CgenConstants.ACC);
-        if (Flags.cgen_debug) System.err.println("    Dispatch to " + node.getName());
+        if (Flags.cgen_debug)
+            System.err.println("    Dispatch to " + node.getName());
         int lab = CgenEnv.getFreshLabel();
-        Cgen.emitter.emitBne(CgenConstants.ACC,CgenConstants.ZERO,lab);      // test for void
+        Cgen.emitter.emitBne(CgenConstants.ACC, CgenConstants.ZERO, lab); // test for void
         Cgen.emitter.emitLoadString(CgenConstants.ACC, env.getFilename());
         Cgen.emitter.emitLoadImm(CgenConstants.T1, node.getLineNumber());
         Cgen.emitter.emitDispatchAbort();
@@ -76,16 +77,17 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         //Cgen.emitter.emitDebugPrint("test1");
         //forceDest(node.getExpr(), CgenConstants.ACC);
         //Cgen.emitter.emitDebugPrint("test2");
-        if (Flags.cgen_debug) System.err.println("    Dispatch to " + node.getName());
+        if (Flags.cgen_debug)
+            System.err.println("    Dispatch to " + node.getName());
         int lab = CgenEnv.getFreshLabel();
-        Cgen.emitter.emitBne(CgenConstants.ACC,CgenConstants.ZERO,lab);      // test for void
+        Cgen.emitter.emitBne(CgenConstants.ACC, CgenConstants.ZERO, lab); // test for void
         Cgen.emitter.emitLoadString(CgenConstants.ACC, env.getFilename());
         Cgen.emitter.emitLoadImm(CgenConstants.T1, node.getLineNumber());
         Cgen.emitter.emitDispatchAbort();
         Cgen.emitter.emitLabelDef(lab);
         //Cgen.emitter.emitDebugPrint("test3");
         //	la	$t1 Base_dispTab
-        Cgen.emitter.emitLoadAddress(CgenConstants.T1, node.getType_name()+CgenConstants.DISPTAB_SUFFIX);
+        Cgen.emitter.emitLoadAddress(CgenConstants.T1, node.getType_name() + CgenConstants.DISPTAB_SUFFIX);
         //Cgen.emitter.emitDebugPrint("test4");
         Cgen.emitter.emitLoad(CgenConstants.T1, minfo.getOffset(), CgenConstants.T1);
         Cgen.emitter.emitJalr(CgenConstants.T1);
@@ -105,18 +107,19 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
         String r_expr = node.getExpr().accept(this, CgenConstants.ACC);
         int lab = CgenEnv.getFreshLabel();
-        Cgen.emitter.emitBne(r_expr,CgenConstants.ZERO,lab);      // test for void
+        Cgen.emitter.emitBne(r_expr, CgenConstants.ZERO, lab); // test for void
         Cgen.emitter.emitLoadString(CgenConstants.ACC, env.getFilename());
         Cgen.emitter.emitLoadImm(CgenConstants.T1, node.getLineNumber());
         Cgen.emitter.emitCaseAbort2();
         Cgen.emitter.emitLabelDef(lab);
-        Cgen.emitter.emitLoad(CgenConstants.T2, CgenConstants.TAG_OFFSET, r_expr);  // fetch the class tag
+        Cgen.emitter.emitLoad(CgenConstants.T2, CgenConstants.TAG_OFFSET, r_expr); // fetch the class tag
 
-        for (int class_num = CgenEnv.getLastTag()-1; class_num >=0; class_num--)
-            for(BranchNode b : node.getCases()) {
+        for (int class_num = CgenEnv.getLastTag() - 1; class_num >= 0; class_num--)
+            for (BranchNode b : node.getCases()) {
                 int tag = Cgen.classTable.get(b.getType_decl()).env.getClassTag();
                 if (class_num == tag) {
-                    if (Flags.cgen_debug) System.err.println("    Coding case " + b.getType_decl());
+                    if (Flags.cgen_debug)
+                        System.err.println("    Coding case " + b.getType_decl());
                     // result is in ACC
                     // r_newvar is the value that we did the case on.  It will be bound to the new var.
                     String r_newvar = CgenConstants.ACC;
@@ -124,7 +127,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
                     lab = CgenEnv.getFreshLabel();
                     CgenEnv downcast = Cgen.classTable.get(b.getType_decl()).env;
                     int class_tag = downcast.getClassTag();
-                    int last_tag  = downcast.getMaxChildTag();
+                    int last_tag = downcast.getMaxChildTag();
 
                     Cgen.emitter.emitBlti(CgenConstants.T2, class_tag, lab);
                     Cgen.emitter.emitBgti(CgenConstants.T2, last_tag, lab);
@@ -151,37 +154,27 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         String r_newvar = CgenConstants.getRegister(env.getNextTempOffset());
 
         String r_init = r_newvar;
-        if (r_init == null){
+        if (r_init == null) {
             r_init = CgenConstants.ACC;
         }
 
-        if (node.getInit() instanceof NoExpressionNode)
-        {
-            if (TreeConstants.Int == node.getType_decl())
-            {
+        if (node.getInit() instanceof NoExpressionNode) {
+            if (TreeConstants.Int == node.getType_decl()) {
                 Cgen.emitter.emitPartialLoadAddress(r_init);
                 Cgen.emitter.codeRefInt(StringTable.inttable.get("0"));
                 Cgen.emitter.emitNewline();
-            }
-            else if (TreeConstants.Str == node.getType_decl())
-            {
+            } else if (TreeConstants.Str == node.getType_decl()) {
                 Cgen.emitter.emitPartialLoadAddress(r_init);
                 Cgen.emitter.codeRefString(StringTable.stringtable.get(""));
                 Cgen.emitter.emitNewline();
-            }
-            else if (TreeConstants.Bool == node.getType_decl())
-            {
+            } else if (TreeConstants.Bool == node.getType_decl()) {
                 Cgen.emitter.emitPartialLoadAddress(r_init);
                 Cgen.emitter.codeRef(false);
                 Cgen.emitter.emitNewline();
-            }
-            else
-            {
+            } else {
                 r_init = CgenConstants.ZERO;
             }
-        }
-        else
-        {
+        } else {
             r_init = node.getInit().accept(this, r_init);
         }
 
@@ -194,7 +187,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
         //test that r_newvar really contains the register to which newvar
         //was assigned.
-        assert( CgenConstants.regEq(newvar.getRegister(), r_newvar) );
+        assert (CgenConstants.regEq(newvar.getRegister(), r_newvar));
 
         String r_body = node.getBody().accept(this, target);
         env.removeLocal();
@@ -207,22 +200,21 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         /* TODO */
         Symbol name = node.getType_name();
         // la	$a0 IO_protObj
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, node.getType_name()+CgenConstants.PROTOBJ_SUFFIX);
+        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, node.getType_name() + CgenConstants.PROTOBJ_SUFFIX);
         // jal	Object.copy
         Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
         // jal	IO_init
-        Cgen.emitter.emitJal(node.getType_name()+CgenConstants.CLASSINIT_SUFFIX);
+        Cgen.emitter.emitJal(node.getType_name() + CgenConstants.CLASSINIT_SUFFIX);
 
         //Cgen.emitter.emitDebugPrint(node.getType_name().getName()+node.getType());
         //Cgen.emitter.emitDebugPrint(env.getClassname());
-        if (name != TreeConstants.SELF_TYPE){
+        if (name != TreeConstants.SELF_TYPE) {
             //Cgen.emitter.emitDebugPrint(name);
             //Cgen.emitter.emitDebugPrint("test");
             // sw	$a0 12($s0)
             Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
             return CgenConstants.ACC;
-        }
-        else{
+        } else {
             //	move	$s1 $a0
             Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
             //	move	$a0 $s1
@@ -230,7 +222,6 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
             return CgenConstants.regNames[0];
         }
     }
-    
 
     @Override
     public String visit(CondNode node, String target) {
@@ -242,7 +233,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         System.out.println(labelThen);
         //System.out.println(labelElse);
         String E1E2 = node.getCond().accept(this, CgenConstants.ACC);
-        
+
         Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
         //Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
         //Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
@@ -299,8 +290,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     }
 
     //Arithmetic Operations for Add, Subtract, Divide, Multiply
-    @Override 
-    public String visit(IntBinopNode node, String data){
+    @Override
+    public String visit(IntBinopNode node, String data) {
         // Cgen(e1)
         // la	$a0 int_const0
         String E1 = node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
@@ -320,19 +311,16 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         // lw	$t1 12($s1)
         Cgen.emitter.emitLoad(CgenConstants.T1, 3, CgenConstants.regNames[0]);
 
-        if (node instanceof PlusNode){
+        if (node instanceof PlusNode) {
             // add	$t1 $t1 $t2
             Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
-        }
-        else if (node instanceof SubNode){
+        } else if (node instanceof SubNode) {
             // sub	$t1 $t1 $t2
             Cgen.emitter.emitSub(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
-        }
-        else if (node instanceof MulNode){
+        } else if (node instanceof MulNode) {
             // mul	$t1 $t1 $t2
             Cgen.emitter.emitMul(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
-        }
-        else if (node instanceof DivideNode){
+        } else if (node instanceof DivideNode) {
             // div	$t1 $t1 $t2
             Cgen.emitter.emitDiv(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
         }
@@ -462,20 +450,20 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
 
     @Override
     public String visit(IntConstNode node, String target) {
-        Cgen.emitter.emitLoadInt(target,node.getVal());
+        Cgen.emitter.emitLoadInt(target, node.getVal());
         return target;
     }
 
     @Override
     public String visit(BoolConstNode node, String target) {
-        System.out.println("BoolConstNode: "+node.getVal());
-        Cgen.emitter.emitLoadBool(target,node.getVal());
+        System.out.println("BoolConstNode: " + node.getVal());
+        Cgen.emitter.emitLoadBool(target, node.getVal());
         return target;
     }
 
     @Override
     public String visit(StringConstNode node, String target) {
-        Cgen.emitter.emitLoadString(target,node.getVal());
+        Cgen.emitter.emitLoadString(target, node.getVal());
         return target;
     }
 
@@ -501,8 +489,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         //if returns null, emit void (unsure if this is 100% correct)
         String result = env.vars.lookup(node.getName()).emitRef(target);
 
-        if (result == null)
-        {
+        if (result == null) {
             Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.SELF);
         }
         return CgenConstants.ACC;
@@ -514,16 +501,13 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
         return null;
     }
 
-
     // forceDest is a wrapper for the code functions that guarantees the
     // result will go in "target".  Since the destination register is always
     // the target, there's no need for a return value.
-    private void forceDest(ExpressionNode e, String target)
-    {
+    private void forceDest(ExpressionNode e, String target) {
         String r = e.accept(this, target);
-        Cgen.emitter.emitMove(target, r);  //omitted if target = r.
+        Cgen.emitter.emitMove(target, r); //omitted if target = r.
     }
-
 
     // Helper for "e1 op e2"
     //
@@ -535,16 +519,14 @@ public class CgenEmitVisitor extends CgenVisitor<String, String>{
     //   3) puts the result of e1 in that new var.
     //
     // The caller of storeOperand function should deallocate the new variable.
-    private void storeOperand(Symbol temp_var, ExpressionNode e1)
-    {
+    private void storeOperand(Symbol temp_var, ExpressionNode e1) {
         //where will temp_var be allocated?
         int offset = env.getNextTempOffset();
         String dest = CgenConstants.getRegister(offset);
-        if (dest == null)
-        { //whoops, temp_var is going on the stack
+        if (dest == null) { //whoops, temp_var is going on the stack
             dest = CgenConstants.ACC;
         }
-        String r_e1 = e1.accept(this,dest); //r_e1 <- e1, where hopefully r_e1=dest
+        String r_e1 = e1.accept(this, dest); //r_e1 <- e1, where hopefully r_e1=dest
         env.addLocal(temp_var);
         env.vars.lookup(temp_var).emitUpdate(r_e1);
     }
