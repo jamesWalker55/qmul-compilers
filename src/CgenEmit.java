@@ -281,6 +281,10 @@ public class CgenEmit {
         s.println(text); //comment this out to get rid of all debug prints
     }
 
+    protected void emitComment(Object text) {
+        s.println("\t# " + text);
+    }
+
     /**
      * Emits an LW instruction.
      *
