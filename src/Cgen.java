@@ -108,6 +108,7 @@ public class Cgen  {
         }
 
         public AttrInfo(int offset, AttributeNode node) {
+            // word offset from first attribute, e.g. 0, 1, 2, 3...
             this.offset = offset;
             this.node = node;
         }
@@ -115,14 +116,17 @@ public class Cgen  {
         @Override
         public String emitRef(String optionalDest) {
             /* TODO */
-            //Cgen.emitter.emitDebugPrint("emitRef Here");
+            // This will decrease the test success rate, but it's useful for seeing where this
+            // function gets called
+            Utilities.fatalError("Not implemented: emitRef to self attribute");
             return null;
         }
 
         @Override
         public void emitUpdate(String source) {
-            /* TODO */
-            //Cgen.emitter.emitDebugPrint("emitUpdate Here");
+            // offset is in units of words
+            // offset 3 words from beginning
+            emitter.emitStore(source, offset + 3, CgenConstants.SELF);
         }
     }
 
