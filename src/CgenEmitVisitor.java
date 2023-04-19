@@ -159,6 +159,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         }
 
         if (node.getInit() instanceof NoExpressionNode) {
+            // if variable is not initialised, use default initialisation
+            // see manual page 25
             if (TreeConstants.Int == node.getType_decl()) {
                 Cgen.emitter.emitPartialLoadAddress(r_init);
                 Cgen.emitter.codeRefInt(StringTable.inttable.get("0"));
