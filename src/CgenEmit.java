@@ -262,8 +262,7 @@ public class CgenEmit {
     protected void codeDispatchTable(CgenEnv env) {
         Symbol classname = env.getClassname();
 
-        s.print(classname + CgenConstants.DISPTAB_SUFFIX);
-        s.println(CgenConstants.LABEL);
+        s.println(classname + CgenConstants.DISPTAB_SUFFIX + ":");
 
         for (int i = 0; i < env.getNumMethods(); i++) {
             s.print(CgenConstants.WORD);
