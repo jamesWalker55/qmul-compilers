@@ -214,14 +214,13 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
             //Cgen.emitter.emitDebugPrint("test");
             // sw	$a0 12($s0)
             Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
-            return CgenConstants.ACC;
         } else {
             //	move	$s1 $a0
             Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
             //	move	$a0 $s1
             Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
-            return CgenConstants.regNames[0];
         }
+        return CgenConstants.ACC;
     }
 
     @Override
