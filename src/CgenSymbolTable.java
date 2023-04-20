@@ -144,7 +144,7 @@ class CgenSymbolTable<K, D> {
         Scope tmp = current;
         int i = 0;
         while (tmp != null) {
-            buf.append("Scope ").append(i).append(": ").append(tmp.map).append("\n");
+            buf.append(String.format("Scope %d: %s\n", i, tmp.map));
             tmp = tmp.enclosing;
         }
         return buf.toString();
