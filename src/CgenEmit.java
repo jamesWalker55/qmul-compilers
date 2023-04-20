@@ -979,7 +979,7 @@ public class CgenEmit {
         codeRefInt(lensym);
         s.println(); // length
         emitStringConstant(sym.getName()); // ascii string
-        System.out.println(sym.getName());
+        // System.out.println(sym.getName());
         s.print(CgenConstants.ALIGN); // align to word
     }
 
