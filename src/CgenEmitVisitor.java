@@ -201,32 +201,40 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         Symbol name = node.getType_name();
         if (name == TreeConstants.SELF_TYPE) {
             name = env.getClassname();
+            //Cgen.emitter.emitComment("self type");
+            // la	$t1 class_objTab
+            Cgen.emitter.emitLoadAddress(CgenConstants.T1, CgenConstants.CLASSOBJTAB);
+            // lw	$t2 0($s0)
+            Cgen.emitter.emitLoad(CgenConstants.T2, 0, CgenConstants.SELF);
+            // sll	$t2 $t2 3
+            Cgen.emitter.emitSll(CgenConstants.T2, CgenConstants.T2, 3);
+            // addu	$t1 $t1 $t2
+            Cgen.emitter.emitAddu(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+            // move	$s1 $t1
+            Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.T1);
+            // lw	$a0 0($t1)
+            Cgen.emitter.emitLoad(CgenConstants.ACC, 0, CgenConstants.T1);
+            // jal	Object.copy
+            Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
+            // lw	$t1 4($s1)
+            Cgen.emitter.emitLoad(CgenConstants.T1, 1, CgenConstants.regNames[0]);
+            // jalr		$t1
+            Cgen.emitter.emitJalr(CgenConstants.T1);
         }
-        // la	$a0 IO_protObj
-        Cgen.emitter.emitLoadAddress(CgenConstants.ACC, name + CgenConstants.PROTOBJ_SUFFIX);
+        else{
+            // la	$a0 IO_protObj
+            Cgen.emitter.emitLoadAddress(CgenConstants.ACC, name + CgenConstants.PROTOBJ_SUFFIX);
 
-        // Object.copy copies the object currently at $a0
-        // the new object will be replaced at $a0
-        // see T10-runtime-v0.pdf
+            // Object.copy copies the object currently at $a0
+            // the new object will be replaced at $a0
+            // see T10-runtime-v0.pdf
 
-        // jal	Object.copy
-        Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
-        // jal	IO_init
-        Cgen.emitter.emitJal(name + CgenConstants.CLASSINIT_SUFFIX);
-
+            // jal	Object.copy
+            Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
+            // jal	IO_init
+            Cgen.emitter.emitJal(name + CgenConstants.CLASSINIT_SUFFIX);
+        }
         // the new object is now at $a0, no further work is needed
-
-        // if (name != TreeConstants.SELF_TYPE) {
-        //     //Cgen.emitter.emitDebugPrint(name);
-        //     //Cgen.emitter.emitDebugPrint("test");
-        //     // sw	$a0 12($s0)
-        //     Cgen.emitter.emitStoreVal(CgenConstants.ACC, CgenConstants.SELF);
-        // } else {
-        //     //	move	$s1 $a0
-        //     Cgen.emitter.emitMove(CgenConstants.regNames[0], CgenConstants.ACC);
-        //     //	move	$a0 $s1
-        //     Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.regNames[0]);
-        // }
         return CgenConstants.ACC;
     }
 
