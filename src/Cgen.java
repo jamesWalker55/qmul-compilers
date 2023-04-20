@@ -114,12 +114,10 @@ public class Cgen  {
         }
 
         @Override
-        public String emitRef(String optionalDest) {
-            /* TODO */
-            // This will decrease the test success rate, but it's useful for seeing where this
-            // function gets called
-            Utilities.fatalError("Not implemented: emitRef to self attribute");
-            return null;
+        public String emitRef(String dest) {
+            emitter.emitLoad(dest, offset + 3, CgenConstants.SELF);
+            // emitter.emitAddiu(dest, CgenConstants.SELF, offset * 4 + 12);
+            return dest;
         }
 
         @Override

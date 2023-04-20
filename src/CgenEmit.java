@@ -184,6 +184,14 @@ public class CgenEmit {
         s.println("");
     }
 
+    protected void println(Object text) {
+        s.println(text);
+    }
+
+    protected void print(Object text) {
+        s.print(text);
+    }
+
     //
     //  The class name table is a mapping from
     //  class tags -> class names.
@@ -283,6 +291,22 @@ public class CgenEmit {
 
     protected void emitComment(Object text) {
         s.println("\t# " + text);
+    }
+
+    protected void emitPrint(String register) {
+		s.println("\t\t#PRINT");
+		s.println("\t\tli $v0 1");
+		s.println("\t\tmove $a0 " + register);
+		s.println("\t\tsyscall");
+		s.println("\t\t#/PRINT");
+    }
+
+    protected void emitPrintVal(String register) {
+		s.println("\t\t#PRINT");
+		s.println("\t\tli $v0 1");
+		s.println(String.format("\t\tlw $a0 0(%s)", register));
+		s.println("\t\tsyscall");
+		s.println("\t\t#/PRINT");
     }
 
     /**

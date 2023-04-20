@@ -262,23 +262,32 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     @Override
     public String visit(LoopNode node, String _unused) {
-        int loop_label = CgenEnv.getFreshLabel();
-        int end_label = CgenEnv.getFreshLabel();
-        /* WIP */
-        Cgen.emitter.emitLabelDef(loop_label); //start lavel
-        //cgen(e1)
-        forceDest(node.getCond(), CgenConstants.ACC);
-        Cgen.emitter.emitMove(CgenConstants.T1, CgenConstants.ACC);
-        //beq	$t1 $zero label1
-        Cgen.emitter.emitBeq(CgenConstants.T1, CgenConstants.ZERO, loop_label);
 
-        //cgen(e2)
-        forceDest(node.getBody(), CgenConstants.ACC);
+        int loopStartLabel = CgenEnv.getFreshLabel();
+        int loopEndLabel = CgenEnv.getFreshLabel();
 
-        //b	label0
-        Cgen.emitter.emitBranch(loop_label);
-        Cgen.emitter.emitLabelDef(end_label);
-        //move	$a0 $zero
+        // start of loop
+        Cgen.emitter.emitLabelDef(loopStartLabel);
+
+        // evaluate the condition
+        node.getCond().accept(this, CgenConstants.ACC);
+        // load the value (offset 12) of the boolean into a0
+        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
+        Cgen.emitter.emitPrint(CgenConstants.T1);
+        Cgen.emitter.emitPrint(CgenConstants.T1);
+        Cgen.emitter.emitPrint(CgenConstants.T1);
+        // jump to loop end if false
+        Cgen.emitter.emitBeqz(CgenConstants.T1, loopEndLabel);
+
+        // evaluate the body
+        node.getBody().accept(this, CgenConstants.ACC);
+        // jump back to loop start
+        Cgen.emitter.emitBranch(loopStartLabel);
+
+        // label loop end
+        Cgen.emitter.emitLabelDef(loopEndLabel);
+
+        // return value is always void
         Cgen.emitter.emitMove(CgenConstants.ACC, CgenConstants.ZERO);
         return CgenConstants.ACC;
     }
@@ -309,13 +318,16 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         // jal	Object.copy
         Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
         // loading values from addresses (value of address $a0 into $t2), (value of address $s1 into $t1)
-        // top
-        Cgen.emitter.emitTop(CgenConstants.regNames[0]);
+        // pop
+        Cgen.emitter.emitPop(CgenConstants.regNames[0]);
         // lw	$t2 12($a0)
+        // address of integer's value
         Cgen.emitter.emitLoad(CgenConstants.T2, 3, CgenConstants.ACC);
         // lw	$t1 12($s1)
+        // address of integer's value
         Cgen.emitter.emitLoad(CgenConstants.T1, 3, CgenConstants.regNames[0]);
 
+        // store integer result of operation to T1
         if (node instanceof PlusNode) {
             // add	$t1 $t1 $t2
             Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
@@ -330,10 +342,9 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
             Cgen.emitter.emitDiv(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
         }
 
-        // sw	$t1 12($a0) //value to address
+        // assign integer result back to ACC
         Cgen.emitter.emitStore(CgenConstants.T1, 3, CgenConstants.ACC);
-        // pop
-        Cgen.emitter.emitPop();
+
         return CgenConstants.ACC;
     }
 
@@ -399,28 +410,43 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     @Override
     public String visit(LTNode node, String _unused) {
-        int label = CgenEnv.getFreshLabel();
-        /* WIP */
-        //cgen(e1)
-        node.getE1().accept(this, CgenConstants.ACC);
-        //push
-        Cgen.emitter.emitPush(CgenConstants.ACC);
-        //cgen(e2)
-        node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
-        //pop
-        Cgen.emitter.emitPop();
-        //move $t2 $a0
-        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        // la	$a0 true
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        // blt $t1 $t2 label
-        Cgen.emitter.emitBlt(CgenConstants.T1, CgenConstants.T2, label);
-        // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
-        Cgen.emitter.emitLabelDef(label);
+        // evaluate the first expression
+        node.getE1().accept(this, CgenConstants.ACC);
+
+        // load the address of the value (offset 12) of the number into a temp register
+        // Cgen.emitter.emitAddiu(CgenConstants.regNames[0], CgenConstants.ACC, 12);
+        Cgen.emitter.emitLoad(CgenConstants.regNames[0], 3, CgenConstants.ACC);
+
+        // push the expression's value's address to stack
+        Cgen.emitter.emitPush(CgenConstants.regNames[0]);
+
+        // evaluate the second expression
+        node.getE2().accept(this, CgenConstants.ACC);
+
+        // load the address of the value (offset 12) of the number into a second temp register
+        // Cgen.emitter.emitAddiu(CgenConstants.regNames[1], CgenConstants.ACC, 12);
+        Cgen.emitter.emitLoad(CgenConstants.regNames[1], 3, CgenConstants.ACC);
+
+        // pop the first expression's value's address back to the first temp register
+        Cgen.emitter.emitPop(CgenConstants.regNames[0]);
+
+        int isLessThanLabel = CgenEnv.getFreshLabel();
+        int endLabel = CgenEnv.getFreshLabel();
+
+        // jump to isLessThanLabel if it is indeed less than
+        Cgen.emitter.emitBlt(CgenConstants.regNames[0], CgenConstants.regNames[1], isLessThanLabel);
+
+        // is NOT less than
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        Cgen.emitter.emitBranch(endLabel);
+
+        // is indeed less than
+        Cgen.emitter.emitLabelDef(isLessThanLabel);
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+
+        Cgen.emitter.emitLabelDef(endLabel);
+
         return CgenConstants.ACC;
     }
 
@@ -494,7 +520,8 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     public String visit(ObjectNode node, String target) {
         String ref = env.vars.lookup(node.getName()).emitRef(target);
         if (ref == null) {
-            Utilities.fatalError(String.format("Cgen got null for object '%s', did you implement emitRef yet?", node.getName()));
+            Utilities.fatalError(
+                    String.format("Cgen got null for object '%s', did you implement emitRef yet?", node.getName()));
         }
         return ref;
     }
