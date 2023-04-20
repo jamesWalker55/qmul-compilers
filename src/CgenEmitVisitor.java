@@ -306,44 +306,40 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     //Arithmetic Operations for Add, Subtract, Divide, Multiply
     @Override
     public String visit(IntBinopNode node, String _unused) {
-        // Cgen(e1)
-        // la	$a0 int_const0
+        // evaluate e1 and store to a0
         node.getE1().accept(this, CgenConstants.ACC); //returns the register locations
-        // push
+        // push a0 to stack
         Cgen.emitter.emitPushAcc();
-        // Cgen(e2)
-        // la	$a0 int_const0
+
+        // evaluate e2 and store to a0
         node.getE2().accept(this, CgenConstants.ACC);
-
-        // jal	Object.copy
+        // duplicate the integer object at a0
         Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
-        // loading values from addresses (value of address $a0 into $t2), (value of address $s1 into $t1)
-        // pop
-        Cgen.emitter.emitPop(CgenConstants.regNames[0]);
-        // lw	$t2 12($a0)
-        // address of integer's value
-        Cgen.emitter.emitLoad(CgenConstants.T2, 3, CgenConstants.ACC);
-        // lw	$t1 12($s1)
-        // address of integer's value
-        Cgen.emitter.emitLoad(CgenConstants.T1, 3, CgenConstants.regNames[0]);
+        // put address of e2's value in reg1
+        Cgen.emitter.emitLoad(CgenConstants.regNames[1], 3, CgenConstants.ACC);
 
-        // store integer result of operation to T1
+        // pop e1 to reg0
+        Cgen.emitter.emitPop(CgenConstants.regNames[0]);
+        // put address of e1's value in reg0
+        Cgen.emitter.emitLoad(CgenConstants.regNames[0], 3, CgenConstants.regNames[0]);
+
+        // store integer result of operation to reg0
         if (node instanceof PlusNode) {
             // add	$t1 $t1 $t2
-            Cgen.emitter.emitAdd(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+            Cgen.emitter.emitAdd(CgenConstants.regNames[0], CgenConstants.regNames[0], CgenConstants.regNames[1]);
         } else if (node instanceof SubNode) {
             // sub	$t1 $t1 $t2
-            Cgen.emitter.emitSub(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+            Cgen.emitter.emitSub(CgenConstants.regNames[0], CgenConstants.regNames[0], CgenConstants.regNames[1]);
         } else if (node instanceof MulNode) {
             // mul	$t1 $t1 $t2
-            Cgen.emitter.emitMul(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+            Cgen.emitter.emitMul(CgenConstants.regNames[0], CgenConstants.regNames[0], CgenConstants.regNames[1]);
         } else if (node instanceof DivideNode) {
             // div	$t1 $t1 $t2
-            Cgen.emitter.emitDiv(CgenConstants.T1, CgenConstants.T1, CgenConstants.T2);
+            Cgen.emitter.emitDiv(CgenConstants.regNames[0], CgenConstants.regNames[0], CgenConstants.regNames[1]);
         }
 
-        // assign integer result back to ACC
-        Cgen.emitter.emitStore(CgenConstants.T1, 3, CgenConstants.ACC);
+        // assign integer result back to integer object field
+        Cgen.emitter.emitStore(CgenConstants.regNames[0], 3, CgenConstants.ACC);
 
         return CgenConstants.ACC;
     }
