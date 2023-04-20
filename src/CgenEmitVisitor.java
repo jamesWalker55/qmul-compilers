@@ -491,14 +491,12 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     // Default implementation
     @Override
-    public String visit(ObjectNode node, String _unused) {
-        //if returns null, emit void (unsure if this is 100% correct)
-        String result = env.vars.lookup(node.getName()).emitRef(CgenConstants.ACC);
-
-        if (result == null) {
-            Cgen.emitter.emitLoadVal(CgenConstants.ACC, CgenConstants.SELF);
+    public String visit(ObjectNode node, String target) {
+        String ref = env.vars.lookup(node.getName()).emitRef(target);
+        if (ref == null) {
+            Utilities.fatalError(String.format("Cgen got null for object '%s', did you implement emitRef yet?", node.getName()));
         }
-        return CgenConstants.ACC;
+        return ref;
     }
 
     @Override
