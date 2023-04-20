@@ -273,9 +273,7 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
         node.getCond().accept(this, CgenConstants.ACC);
         // load the value (offset 12) of the boolean into a0
         Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
-        Cgen.emitter.emitPrint(CgenConstants.T1);
-        Cgen.emitter.emitPrint(CgenConstants.T1);
-        Cgen.emitter.emitPrint(CgenConstants.T1);
+
         // jump to loop end if false
         Cgen.emitter.emitBeqz(CgenConstants.T1, loopEndLabel);
 
@@ -449,8 +447,19 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
     @Override
     public String visit(NegNode node, String _unused) {
         /* TODO */
-        Cgen.emitter.emitDebugPrint("negnode test");
-        return null;
+        //Cgen.emitter.emitDebugPrint("negnode test");
+        //cgen(e1)
+        // la	$a0 int_const0
+        node.getE1().accept(this, CgenConstants.ACC);
+        // jal	Object.copy
+        Cgen.emitter.emitJal(CgenConstants.OBJECT_COPY);
+        // lw	$t1 12($a0)
+        Cgen.emitter.emitLoadVal(CgenConstants.T1, CgenConstants.ACC);
+        // neg	$t1 $t1
+        Cgen.emitter.emitNeg(CgenConstants.T1, CgenConstants.T1);
+        // sw	$t1 12($a0)
+        Cgen.emitter.emitStoreVal(CgenConstants.T1, CgenConstants.ACC);
+        return CgenConstants.ACC;
     }
 
     @Override
