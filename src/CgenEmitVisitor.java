@@ -385,28 +385,42 @@ public class CgenEmitVisitor extends CgenVisitor<String, String> {
 
     @Override
     public String visit(LEqNode node, String _unused) {
-        int label = CgenEnv.getFreshLabel();
-        /* WIP */
-        //cgen(e1)
+        // evaluate the first expression
         node.getE1().accept(this, CgenConstants.ACC);
-        //push
-        Cgen.emitter.emitPush(CgenConstants.ACC);
-        //cgen(e2)
-        node.getE2().accept(this, CgenConstants.ACC);
-        //$t1 := top
-        Cgen.emitter.emitTop(CgenConstants.T1);
-        //pop
-        Cgen.emitter.emitPop();
-        //move $t2 $a0
-        Cgen.emitter.emitMove(CgenConstants.T2, CgenConstants.ACC);
-        // la	$a0 true
-        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
-        // bleq $t1 $t2 label
-        Cgen.emitter.emitBleq(CgenConstants.T1, CgenConstants.T2, label);
-        // la	$a1 false
-        Cgen.emitter.emitLoadBool(CgenConstants.A1, false);
 
-        Cgen.emitter.emitLabelDef(label);
+        // load the address of the value (offset 12) of the number into a temp register
+        // Cgen.emitter.emitAddiu(CgenConstants.regNames[0], CgenConstants.ACC, 12);
+        Cgen.emitter.emitLoad(CgenConstants.regNames[0], 3, CgenConstants.ACC);
+
+        // push the expression's value's address to stack
+        Cgen.emitter.emitPush(CgenConstants.regNames[0]);
+
+        // evaluate the second expression
+        node.getE2().accept(this, CgenConstants.ACC);
+
+        // load the address of the value (offset 12) of the number into a second temp register
+        // Cgen.emitter.emitAddiu(CgenConstants.regNames[1], CgenConstants.ACC, 12);
+        Cgen.emitter.emitLoad(CgenConstants.regNames[1], 3, CgenConstants.ACC);
+
+        // pop the first expression's value's address back to the first temp register
+        Cgen.emitter.emitPop(CgenConstants.regNames[0]);
+
+        int isLessThanLabel = CgenEnv.getFreshLabel();
+        int endLabel = CgenEnv.getFreshLabel();
+
+        // jump to isLessThanLabel if it is indeed less than or equal
+        Cgen.emitter.emitBleq(CgenConstants.regNames[0], CgenConstants.regNames[1], isLessThanLabel);
+
+        // is NOT less than or equal
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, false);
+        Cgen.emitter.emitBranch(endLabel);
+
+        // is indeed less than or equal
+        Cgen.emitter.emitLabelDef(isLessThanLabel);
+        Cgen.emitter.emitLoadBool(CgenConstants.ACC, true);
+
+        Cgen.emitter.emitLabelDef(endLabel);
+
         return CgenConstants.ACC;
     }
 
